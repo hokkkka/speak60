@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F3A3D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Speak 60">
+<meta name="format-detection" content="telephone=no">
+<title>Speak My Story · 60분 스피킹</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#13262A; --slate:#1F3A3D; --concrete:#D9DCD6; --paper:#F3F5F2; --card:#FFFFFF;
+  --signal:#E3B23C; --alert:#B5452F; --mute:#5C6E70; --ok:#2F6B4F;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark; --ink:#E8ECEA; --slate:#7FA9AD; --concrete:#34474A; --paper:#162426; --card:#1D2E31; --mute:#9BB0B2; }
+}
+:root[data-theme="dark"]{color-scheme:dark; --ink:#E8ECEA; --slate:#7FA9AD; --concrete:#34474A; --paper:#162426; --card:#1D2E31; --mute:#9BB0B2; }
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:'IBM Plex Sans KR',system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  line-height:1.6;-webkit-text-size-adjust:100%}
+body{padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+main{max-width:680px;margin:0 auto;padding:20px 18px 110px}
+h1{font-size:1.9rem;line-height:1.2;margin:0}
+h2{font-size:1.35rem;line-height:1.3;margin:0 0 4px}
+h3{font-size:1rem;margin:20px 0 8px}
+p{margin:6px 0}
+.mute{color:var(--mute)} .small{font-size:.82rem} .xs{font-size:.74rem}
+.btn{font:inherit;font-weight:600;font-size:.88rem;border:0;border-radius:6px;padding:11px 16px;cursor:pointer;background:var(--slate);color:var(--paper)}
+.btn.sig{background:var(--signal);color:#13262A}
+.btn.ghost{background:transparent;color:var(--slate);border:1.5px solid var(--slate)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn:focus-visible,.link:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.link{background:none;border:0;color:var(--mute);text-decoration:underline;font:inherit;font-size:.8rem;cursor:pointer;padding:4px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+textarea,input[type=text],input[type=password],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--concrete);border-radius:6px;padding:10px}
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:10px 0 12px;border-bottom:1px solid var(--concrete);margin-bottom:18px}
+.clock{display:flex;justify-content:space-between;align-items:baseline}
+.clock b{font-size:1.5rem;font-variant-numeric:tabular-nums}
+.paused-body .q,.paused-body .flash{opacity:.45;pointer-events:none}
+.ctrl{display:flex;gap:6px;margin-top:8px}
+.ctrl .btn{flex:1;padding:8px 6px;font-size:.8rem}
+.phases{display:flex;gap:3px;margin-top:8px}
+.phases button{font:inherit;border:0;cursor:pointer;padding:0 2px;height:26px;border-radius:3px;background:var(--concrete);font-size:.68rem;display:flex;align-items:center;justify-content:center;color:var(--mute);overflow:hidden;white-space:nowrap}
+.phases button.done{background:var(--slate);color:var(--paper)}
+.phases button.now{background:var(--signal);color:#13262A;font-weight:700}
+/* blocks */
+.q{padding:16px 0;border-top:1px solid var(--concrete)}
+.q .text{font-weight:600;font-size:1.05rem;line-height:1.4}
+.rec{margin-top:10px}
+.rec-bar{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.meter{flex:1}
+.meta{display:flex;justify-content:space-between;font-size:.74rem;color:var(--mute);font-variant-numeric:tabular-nums}
+.track{height:6px;background:var(--concrete);border-radius:3px;margin-top:3px}
+.fill{height:6px;background:var(--slate);border-radius:3px}
+.recording .fill{background:var(--signal)}
+.topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.topic{font:inherit;font-size:.85rem;text-align:left;padding:10px;border-radius:6px;border:1px solid var(--concrete);background:var(--card);color:var(--ink);cursor:pointer}
+.topic.on{border:2px solid var(--signal)}
+.topic small{display:block;color:var(--mute);font-size:.7rem}
+.qpick label{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--concrete);cursor:pointer;font-size:.93rem}
+.fbtn{border:0;cursor:pointer;font:inherit;font-size:.72rem}
+.fbtn.on{background:var(--slate);color:var(--paper)}
+.model{margin-top:10px;padding:12px;border-radius:6px;background:var(--card);border-left:3px solid var(--signal)}
+.script{font-size:.98rem;line-height:1.75;margin:8px 0}
+.spk{padding:7px 12px;font-size:.82rem}
+.spk.playing{background:var(--signal);color:#13262A}
+.who{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:600;margin-bottom:10px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.pcard{font:inherit;text-align:left;padding:22px 16px;border-radius:10px;border:1.5px solid var(--concrete);background:var(--card);color:var(--ink);cursor:pointer;min-height:130px;display:flex;flex-direction:column;gap:6px}
+.pcard b{font-size:1.6rem}.pcard span{font-size:.78rem;color:var(--mute)}
+.pcard em{font-style:normal;font-size:.7rem;color:#13262A;background:var(--signal);border-radius:10px;padding:1px 8px;align-self:flex-start}
+.pcard.last{border-color:var(--signal)}
+button,.topic,.pcard{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.modal{position:fixed;inset:0;background:rgba(10,20,22,.45);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}
+.modal .box{background:var(--card);color:var(--ink);border-radius:10px;padding:20px;max-width:420px;width:100%;font-size:.95rem}
+.ok{color:var(--ok)} .bad{color:var(--alert)}
+.tabs2{display:flex;margin:22px 0 6px;border-bottom:1px solid var(--concrete)}
+.tabs2 button{flex:1;font:inherit;font-weight:600;padding:10px 0;background:none;border:0;color:var(--mute);cursor:pointer}
+.tabs2 button.on{color:var(--ink);box-shadow:inset 0 -3px 0 var(--signal)}
+.fl{display:block;font-size:.85rem;font-weight:600;margin-top:12px}
+.fl input{margin-top:5px;font-weight:400}
+.chip{display:inline-block;font-size:.72rem;padding:2px 8px;border-radius:10px;background:var(--concrete);color:var(--ink)}
+.flash{background:var(--card);border-radius:8px;padding:22px 18px;text-align:center;margin:10px 0}
+.flash .ko{font-size:1.1rem;font-weight:600}
+.flash .en{font-size:1.15rem;margin-top:10px;color:var(--slate);font-weight:600}
+.blk{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--concrete);font-size:.9rem}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 18px;margin:14px 0 6px}
+.kpi b{display:block;font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.76rem;color:var(--mute)}
+.score-big{font-size:3.4rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.delta-up{color:var(--ok);font-weight:600} .delta-down{color:var(--alert);font-weight:600}
+.bars .r{display:grid;grid-template-columns:92px 1fr 44px;gap:10px;align-items:center;font-size:.84rem;margin:5px 0}
+.bars .t{height:10px;background:var(--concrete);border-radius:3px}
+.bars .t i{display:block;height:10px;background:var(--slate);border-radius:3px}
+.tbl{overflow-x:auto} table{border-collapse:collapse;width:100%;font-size:.8rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 6px;border-bottom:1px solid var(--concrete);text-align:right;white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{color:var(--mute);font-weight:500}
+svg text{fill:var(--mute);font-size:10px;font-family:inherit}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--slate);padding-bottom:env(safe-area-inset-bottom,0)}
+nav div{max-width:680px;margin:0 auto;display:flex}
+nav button{flex:1;font:inherit;font-weight:600;font-size:.88rem;padding:15px 0;background:none;border:0;color:#F3F5F2;opacity:.65;cursor:pointer}
+nav button.on{opacity:1;box-shadow:inset 0 -3px 0 var(--signal)}
+#toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:6px;font-size:.85rem;display:none;max-width:90%;z-index:20}
+input[type=range]{width:100%;accent-color:var(--slate)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav><div>
+  <button data-tab="today">오늘 학습</button>
+  <button data-tab="review">복습</button>
+  <button data-tab="growth">성장</button>
+  <button data-tab="notes">노트·설정</button>
+</div></nav>
+<div id="toast"></div>
+<input type="file" id="importFile" accept="application/json,.json,text/plain" hidden>
+
+<script>
+/* ================= 서버(Firebase) 설정 =================
+   Firebase 콘솔 → 프로젝트 설정 → 내 앱(웹)에서 복사한 값을 붙여넣으세요.
+   비워 두면 로그인 없이 '이 기기에만 저장' 방식으로 동작합니다. (이 값은 비밀번호가 아니라 공개돼도 되는 식별값입니다) */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+const FB_VERSION='10.12.2';
+const ID_DOMAIN='speak60.app'; // 아이디를 내부적으로 이메일 형식으로 바꿀 때만 쓰는 값(메일 발송 없음)
+
+/* ================= data ================= */
+const TOPICS = [{"id": "work","ko": "일과 커리어","qs": ["B:What do you do for a living?","B:How long have you been in your current role?","B:How did you end up in this field?","B:What part of your job do you enjoy the most?","B:What's the most challenging part of your work?","B:Do you prefer working alone or as part of a team?","D:Describe your workplace and the people you work with.","D:Walk me through a typical workday, from the moment you arrive.","D:Describe the best boss or mentor you've ever had.","E:Tell me about a project you're proud of. What made it successful?","E:Tell me about a time something went wrong at work. What happened, and how did you handle it?","E:What was your very first job like?","C:How has your job changed since you first started?","C:How is your current job different from your previous one?","C:How has technology changed the way people in your field work?","O:Is it better to stay at one company or change jobs often? Why?","O:What makes a workplace a good place to work?","O:Should people choose a job for passion or for stability?","R:Call a colleague to explain that you'll miss an important deadline, and propose a solution.","R:You've been invited to give a talk at another institute. Call the organizer and ask three or four questions about the event."]},{"id": "hometown","ko": "고향","qs": ["B:Where did you grow up?","B:How long did you live there?","B:What is your hometown best known for?","B:Do you still visit your hometown often?","B:Is your hometown a good place for families?","B:What's the weather like there throughout the year?","D:Describe your hometown to someone who has never been there.","D:Describe your favorite spot in your hometown.","D:Describe a local festival or tradition from your hometown.","E:Tell me about a memorable experience you had growing up there.","E:Tell me about the last time you went back. What did you do?","E:Have you ever shown a visitor around your hometown? How did it go?","C:How has your hometown changed over the past ten or twenty years?","C:How is your hometown different from where you live now?","C:How is life for young people there different from when you were young?","O:Do small towns or big cities offer a better life?","O:What could your hometown do to attract more young people?","O:Is it important for people to stay connected to where they're from?","R:A friend from abroad wants to visit your hometown. Leave a message suggesting what they should see and do.","R:Call a local tourist office and ask about events happening next month."]},{"id": "home","ko": "사는 곳","qs": ["B:Where do you live now?","B:Do you live in a house or an apartment?","B:Who do you live with?","B:How long have you lived in your current place?","B:Which room do you spend the most time in?","B:Are you planning to move anytime soon?","D:Describe your home in as much detail as you can.","D:Describe your neighborhood and what's around it.","D:Describe your favorite room and why you like it.","E:Tell me about a time something broke at home and how you got it fixed.","E:Tell me about moving into your current home. How did it go?","E:Have you ever had a problem with a neighbor? What happened?","C:How is your current home different from the place you grew up in?","C:How have homes in Korea changed over the years?","C:How has your neighborhood changed since you moved in?","O:Is it better to rent or to buy a home? Why?","O:Why are housing prices such a big issue in many countries?","O:What makes a neighborhood a good place to live?","R:Your heating stopped working. Call the building manager, explain the problem, and ask for a repair.","R:Call a real estate agent and ask about an apartment you saw online."]},{"id": "routine","ko": "하루 일과","qs": ["B:Are you a morning person or a night person?","B:What time do you usually get up?","B:How do you get to work?","B:What do you usually have for lunch on weekdays?","B:What do you do right after work?","B:How many hours of sleep do you usually get?","D:Walk me through a typical weekday from morning to night.","D:Describe your typical weekend.","D:Describe your morning routine in detail.","E:Tell me about a day when your routine was completely thrown off.","E:Tell me about the most hectic day you've had recently.","E:Was there a time you changed your routine on purpose? Why?","C:How is your daily routine different now compared to five years ago?","C:How are your weekdays different from your weekends?","C:How has remote work changed people's routines?","O:Is it important to have a fixed daily routine? Why or why not?","O:Do people today have less free time than before?","O:What's the best way to balance work and personal life?","R:You'll be late for a meeting because of traffic. Call your colleague to explain and reschedule.","R:Call a gym and ask about their opening hours, classes, and membership options."]},{"id": "hobby","ko": "취미·여가","qs": ["B:What do you like to do in your free time?","B:How long have you had this hobby?","B:How often do you get to do it?","B:Do you prefer indoor or outdoor activities?","B:Is there a hobby you share with your family?","B:Is there a hobby you've given up?","D:Describe your favorite hobby and why you enjoy it.","D:Describe the place where you usually enjoy your hobby.","D:Describe what someone needs to get started with your hobby.","E:Tell me how you first got into your hobby.","E:Tell me about a memorable moment related to your hobby.","E:Have you ever tried a hobby and quickly lost interest? What happened?","C:How have your hobbies changed since you were a student?","C:How do people's hobbies today differ from your parents' generation?","C:How has the internet changed the way people enjoy hobbies?","O:Should adults make time for hobbies even when they're busy?","O:Is it better to have one deep hobby or several light ones?","O:Can a hobby turn into a career? Is that a good idea?","R:You want to join a local hobby class. Call and ask three or four questions about it.","R:You signed up for a class but can't attend the first session. Call the instructor and explain."]},{"id": "sport","ko": "운동","qs": ["B:Do you exercise regularly?","B:What kind of exercise do you do?","B:Where do you usually work out?","B:Do you prefer exercising alone or with others?","B:Did you play any sports at school?","B:What sports are popular in Korea?","D:Describe the place where you usually exercise.","D:Describe your usual workout from start to finish.","D:Describe a sport you enjoy watching and explain how it's played.","E:Tell me about the first time you tried a new sport.","E:Tell me about a time you got injured or had a problem while exercising.","E:Tell me about a memorable game you watched or played.","C:How have your exercise habits changed over the years?","C:How has the way people exercise changed recently?","C:How is working out at home different from working out at a gym?","O:Should schools require more physical education?","O:Why do so many people find it hard to stick to an exercise plan?","O:Are professional athletes paid too much?","R:The machine you need at the gym is broken. Explain the problem to the staff and ask for alternatives.","R:Call a friend to invite them to play a sport with you this weekend. Suggest a time and place."]},{"id": "food","ko": "음식","qs": ["B:What's your favorite food?","B:What do you usually eat for breakfast?","B:How often do you cook at home?","B:Do you prefer eating out or eating at home?","B:Is there any food you really don't like?","B:What's a dish you could eat every day?","D:Describe a dish you can cook, step by step.","D:Describe your favorite restaurant.","D:Describe a traditional Korean dish to someone who's never tried it.","E:Tell me about a memorable meal you had.","E:Tell me about a time you tried a food for the first time.","E:Tell me about a time a cooking attempt went wrong.","C:How have your eating habits changed over the years?","C:How are eating habits in Korea changing?","C:How is home cooking different from restaurant food?","O:Is fast food a serious problem today?","O:Should children be taught to cook at school?","O:Why do people post photos of their food on social media?","R:Call a restaurant to book a table for a group and ask about the menu.","R:Your delivery order arrived wrong. Call the restaurant, explain, and ask for a solution."]},{"id": "friends","ko": "친구·인간관계","qs": ["B:How often do you see your friends?","B:Where did you meet your closest friend?","B:Do you prefer small groups or big gatherings?","B:How do you keep in touch with friends?","B:What do you usually talk about with friends?","B:Do you make friends easily?","D:Describe your closest friend.","D:Describe what you usually do when you get together with friends.","D:Describe a regular gathering you have, like a reunion.","E:Tell me about the last time you met up with friends.","E:Tell me about a disagreement you had with a friend and how you resolved it.","E:Tell me about a time a friend really helped you out.","C:How have your friendships changed since school?","C:How has social media changed friendships?","C:How are friends from work different from friends from school?","O:Can you stay close friends with someone you only talk to online?","O:What makes a good friend?","O:Is it harder to make friends as an adult? Why?","R:Call a friend to plan a get-together. Ask about their schedule and preferences.","R:You can't make it to a friend's party. Call to apologize and suggest another plan."]},{"id": "out","ko": "외출","qs": ["B:How often do you go out in the evening?","B:Where do you usually go with friends?","B:What do you always take with you when you leave home?","B:Do you still carry cash?","B:How do you usually pay for things?","B:Do you prefer cafés or bars?","D:Describe a café or place you go to often.","D:Describe what a typical night out looks like for you.","D:Describe a popular area in your city for going out.","E:Tell me about a memorable night out.","E:Tell me about a time you lost something while you were out.","E:Tell me about a time your plans to go out fell through.","C:How have the ways people pay for things changed?","C:How has going out changed since you were in your twenties?","C:How is going out in Seoul different from going out in a smaller city?","O:Will cash disappear completely someday?","O:Do people spend too much money on going out?","O:Is it better to go out or stay in after a busy week?","R:You left your bag at a café. Call them, describe it, and ask how to get it back.","R:Call a theater and ask about tickets, show times, and seating options."]},{"id": "travel","ko": "여행","qs": ["B:Do you like traveling?","B:How often do you travel?","B:Do you prefer domestic or overseas trips?","B:Beach or mountains — which do you prefer?","B:Do you like to plan trips in detail?","B:Do you prefer traveling alone or with others?","D:Describe the most beautiful place you've visited.","D:Describe how you usually prepare for a trip.","D:Describe a place in Korea you'd recommend to a foreign visitor.","E:Tell me about your most memorable trip.","E:Tell me about a trip where something went wrong.","E:Tell me about your first trip abroad.","C:How has the way people travel changed over the years?","C:How is traveling for work different from traveling for fun?","C:How have your travel preferences changed as you've gotten older?","O:Does tourism do more good or harm to local communities?","O:Is it better to travel slowly or to see as much as possible?","O:Should people travel abroad while they're young?","R:Your flight was cancelled. Explain your situation to the airline staff and ask for options.","R:Call a hotel and ask about rooms, rates, and facilities for your upcoming stay."]},{"id": "reading","ko": "독서","qs": ["B:Do you like reading?","B:What kind of books do you enjoy?","B:What are you reading at the moment?","B:Paper books or e-books — which do you prefer?","B:When do you usually read?","B:Do you read more for work or for pleasure?","D:Describe a book that had a big impact on you.","D:Describe your favorite place to read.","D:Describe a writer you like and what their style is like.","E:Tell me about the first book you remember loving.","E:Tell me about a time a book changed your perspective.","E:Tell me about a book you couldn't finish, and why.","C:How have your reading habits changed over time?","C:How has technology changed the way people read?","C:How is reading news online different from reading a newspaper?","O:Do people read less today than in the past?","O:Should students be required to read classic literature?","O:Will printed books eventually disappear?","R:Call a bookstore to ask whether a book is in stock and how to order it.","R:You returned a library book late. Explain to the librarian and ask about the fine."]},{"id": "gifts","ko": "선물","qs": ["B:Do you enjoy giving gifts?","B:Are you good at choosing gifts?","B:What was the last gift you received?","B:Do you prefer giving gifts or receiving them?","B:On what occasions do people give gifts in Korea?","B:Do you prefer practical gifts or sentimental ones?","D:Describe the best gift you've ever received.","D:Describe how you usually choose a gift.","D:Describe a gift you made yourself for someone.","E:Tell me about a gift that didn't go as planned.","E:Tell me about a time you received a surprise gift.","E:Tell me about a gift you gave that someone really loved.","C:How has gift-giving changed with online shopping?","C:How are gift customs in Korea different from those in other countries?","C:How have the gifts you give changed as you've gotten older?","O:Is it okay to give money as a gift?","O:Are expensive gifts better than thoughtful ones?","O:Has gift-giving become too commercial?","R:A gift you ordered arrived damaged. Call the store, explain, and ask for an exchange.","R:Call a friend to ask for advice on a gift for someone you both know."]},{"id": "animals","ko": "반려동물","qs": ["B:Do you like animals?","B:Did you have pets growing up?","B:Are you a dog person or a cat person?","B:Do you have a pet now?","B:What's your favorite animal?","B:Are pets popular in Korea?","D:Describe a pet you had or would like to have.","D:Describe a zoo, aquarium, or park where you saw animals.","D:Describe how people in your country take care of their pets.","E:Tell me about a memorable experience with an animal.","E:Tell me about a time a pet caused a problem.","E:Tell me about the first time you saw a wild animal up close.","C:How has the way people treat pets changed?","C:How is owning a pet in an apartment different from in a house?","C:How has the pet industry grown in recent years?","O:Should zoos exist?","O:Is it fair to keep large pets in small apartments?","O:Should people adopt pets rather than buy them?","R:Your neighbor's dog barks every night. Talk to your neighbor politely about it.","R:Call a vet clinic to make an appointment and ask what to bring."]},{"id": "walk","ko": "산책·야외","qs": ["B:Do you walk a lot?","B:Where do you usually go for walks?","B:Do you prefer walking in the city or in nature?","B:How much time do you spend outdoors each week?","B:Do you usually walk alone or with someone?","B:Do you listen to anything while you walk?","D:Describe your favorite walking route.","D:Describe a park near your home.","D:Describe a hiking trail you've been on.","E:Tell me about a long walk or hike you still remember.","E:Tell me about a time you got lost while walking or hiking.","E:Tell me about a time the weather ruined your outdoor plans.","C:How have parks and green spaces in your city changed?","C:How is walking in the city different from hiking in the mountains?","C:How has your interest in outdoor activities changed over time?","O:Should cities be designed more for pedestrians than for cars?","O:Why are outdoor activities good for mental health?","O:Do children spend too little time outdoors these days?","R:Call a park office to ask about trails, facilities, and safety rules.","R:A friend wants to join your weekend hike. Call and explain where to meet and what to bring."]},{"id": "public","ko": "공공장소","qs": ["B:Do you like crowded places?","B:Is the city you live in usually crowded?","B:How often do you use public transportation?","B:Do you ever talk to strangers in public?","B:Do you wear headphones when you're out?","B:What public places do you visit most often?","D:Describe a busy public place in your city.","D:Describe the public transportation system where you live.","D:Describe a library, museum, or community center you've visited.","E:Tell me about an interesting encounter you had with a stranger.","E:Tell me about a problem you had on public transportation.","E:Tell me about a time a public place was unexpectedly crowded.","C:How has public transportation in your city changed?","C:How have public places changed because of smartphones?","C:How is public etiquette in Korea different from other countries?","O:Should public transportation be free?","O:What should be done about noise in public places?","O:Are public spaces in cities safe enough?","R:You left your phone on the subway. Call the lost and found and describe it.","R:Call the city office to ask about using a public facility for an event."]},{"id": "personality","ko": "성격·성향","qs": ["B:Would you call yourself an introvert or an extrovert?","B:Are you a planner or more spontaneous?","B:Do you enjoy meeting new people?","B:Do you like trying new things?","B:How would your friends describe you?","B:What kind of people do you get along with?","D:Describe your personality in three words, and explain each one.","D:Describe someone whose personality you admire.","D:Describe how you usually deal with stress.","E:Tell me about a time you stepped out of your comfort zone.","E:Tell me about a time your personality helped you succeed.","E:Tell me about a decision you made on the spur of the moment.","C:How has your personality changed since you were younger?","C:How is the way you act at work different from at home?","C:How are you similar to or different from your parents?","O:Can people really change their personality?","O:Is it better to be a leader or a team player?","O:Are personality tests like MBTI actually useful?","R:A colleague asks how to handle a stressful situation. Give them some advice.","R:You're joining a new team. Introduce yourself and ask your teammates a few questions."]},{"id": "childhood","ko": "어린 시절","qs": ["B:Where did you spend your childhood?","B:What were you like as a child?","B:What did you usually do after school?","B:What was your favorite game as a kid?","B:What did you want to be when you grew up?","B:Did you enjoy school?","D:Describe the house you grew up in.","D:Describe your best friend from childhood.","D:Describe a teacher who influenced you.","E:Tell me about a childhood memory that's still vivid.","E:Tell me about a time you got into trouble as a kid.","E:Tell me about a family trip from your childhood.","C:How is childhood today different from your own?","C:How have toys and games changed?","C:How has education in Korea changed since you were in school?","O:Do children today face too much pressure?","O:At what age should children get a smartphone?","O:What's the most important thing parents can teach their children?","R:Your child's school calls about a problem. Ask questions to understand what happened.","R:Call a childhood friend you haven't seen in years and suggest meeting up."]},{"id": "future","ko": "미래 계획","qs": ["B:What are your plans for the next few years?","B:Where would you like to live someday?","B:Is there a skill you'd like to learn?","B:What matters most to you at this point in your life?","B:Do you see yourself staying in your current job?","B:Do you usually set goals for yourself?","D:Describe your ideal life ten years from now.","D:Describe a goal you're working toward right now.","D:Describe the kind of home you'd like to have someday.","E:Tell me about a goal you set and achieved.","E:Tell me about a time your plans changed unexpectedly.","E:Tell me about a decision that shaped your career path.","C:How have your goals changed over the years?","C:How is your life different from what you imagined in your twenties?","C:How is AI changing the future of work?","O:Is it better to plan your life carefully or stay flexible?","O:What will be the biggest change in society over the next twenty years?","O:Should people retire earlier or later?","R:Call a language school and ask about courses that fit your goals.","R:Ask a senior colleague for advice about a big career decision."]},{"id": "research","ko": "연구·강의","qs": ["B:What is your research field?","B:Why did you choose geotechnical engineering?","B:What does your research group work on?","B:Do you prefer lab work, field work, or analysis?","B:What journals do you usually read or publish in?","B:What do you enjoy about teaching or mentoring?","D:Describe your doctoral research to a non-expert.","D:Describe a typical field monitoring project from start to finish.","D:Describe the lab and equipment you'd need for your research program.","E:Tell me about a time an experiment didn't work. What did you do?","E:Tell me about your most rewarding research project.","E:Tell me about a time you explained a technical idea to a non-expert.","C:How has monitoring technology in civil engineering changed over the past decade?","C:How is working at a research institute different from working at a university?","C:How has computer vision changed infrastructure inspection?","O:Should engineering research focus more on practical problems or on fundamental science?","O:Will AI replace human inspectors in infrastructure maintenance?","O:How should universities balance teaching and research?","R:A committee member says your validation is only lab-scale. Respond to the concern.","R:Call a program officer to ask whether your research idea fits their funding call."]},{"id": "us","ko": "미국 생활","qs": ["B:Why are you interested in working in the US?","B:Have you ever been to the US?","B:Which part of the US would you like to live in?","B:What do you know about American university culture?","B:What do you think will be the hardest adjustment?","B:What would you miss most about Korea?","D:Describe your ideal university town.","D:Describe the kind of department you'd like to join.","D:Describe how you'd introduce Korean culture to American colleagues.","E:Tell me about a time you worked with people from another culture.","E:Tell me about your most memorable experience abroad.","E:Tell me about an international conference you attended.","C:How is academic culture in Korea different from the US?","C:How are students in Korea different from American students, as far as you know?","C:How do you expect daily life in the US to differ from life in Korea?","O:Is it worth moving abroad for your career?","O:Should universities hire more international faculty? Why?","O:What makes someone successful in a new country?","R:Call a landlord in the US to ask about an apartment near campus.","R:At a faculty welcome event, introduce yourself and start a conversation with a colleague."]},{"id": "mine","ko": "내 질문","qs": []}];
+const PHASES = [
+ {name:'누적 복습',min:10},
+ {name:'주제 선택',min:5},
+ {name:'1차 답변',min:25},
+ {name:'표현·2차',min:10},
+ {name:'정리',min:10}
+];
+const INTERVALS=[1,3,7,14,30,60];
+const FILLERS=/\b(um+|uh+|erm|you know|i mean|kind of|sort of|like)\b/gi;
+const KEY='ys-speak-v1', DKEY='ys-speak-draft-v1';
+
+/* ================= storage ================= */
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+/* ---- 사용자(프로필): 모든 데이터는 사용자별 키에 따로 저장 ---- */
+const PROFILES=[
+  {id:'yongsoo',name:'용수',bg:"a Korean geotechnical engineer with a PhD, working as a principal researcher at a national transportation research institute, preparing for OPIc AL and US tenure-track faculty interviews"},
+  {id:'hyemin',name:'혜민',bg:''}
+];
+const AKEY_BASE='ys-speak-apikey', LAST='ys-speak-last-profile';
+let PID=null, S=null, D=null;
+let tab='today', justSaved=null, reviewIdx=0, reveal=false, openIdx=null, genBusy={};
+const pk=b=>`${b}:${PID}`;
+/* ---- 실행 환경: Claude 게시 페이지면 클라우드 저장·Claude 음성·AI 사용, 아니면 이 기기 저장 ---- */
+const IN_CLAUDE=!!(window.claude&&typeof window.claude.use==='function');
+const CAP={db:null,user:null,sample:null,dictation:null,tts:null,downloads:null};
+const FB_ON=!!(FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId);
+let FB=null, AUTH_USER=null, authBusy=false, authTab='login', pendingName='';
+let MODE='local', BOOTED=false, PSTATS={}, syncState='', dictDenied=false;
+async function loadFirebaseSdk(){
+  if(window.__FB_SDK)return window.__FB_SDK; // 테스트용 주입
+  const base=`https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
+  const [app,auth,fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+  return {app,auth,fs};
+}
+function fbWrapDb(sdk,fsdb){ // Firestore를 앱의 저장 인터페이스(doc/collection/get/set/delete)에 맞춤
+  const wrapDoc=path=>({path,
+    get:async()=>{const sn=await sdk.fs.getDoc(sdk.fs.doc(fsdb,path));return {id:sn.id,exists:sn.exists(),data:()=>sn.data()}},
+    set:d=>sdk.fs.setDoc(sdk.fs.doc(fsdb,path),d),
+    delete:()=>sdk.fs.deleteDoc(sdk.fs.doc(fsdb,path)),
+    collection:sub=>wrapCol(path+'/'+sub)});
+  const wrapCol=path=>({path,doc:id=>wrapDoc(path+'/'+id),
+    get:async()=>{const q=await sdk.fs.getDocs(sdk.fs.collection(fsdb,path));return {docs:q.docs.map(d=>({id:d.id,exists:true,data:()=>d.data()})),size:q.size,empty:q.empty}}});
+  return {doc:wrapDoc,collection:wrapCol};
+}
+async function initFirebase(){
+  const sdk=await loadFirebaseSdk();
+  const app=sdk.app.initializeApp(FIREBASE_CONFIG);
+  const auth=sdk.auth.getAuth(app);
+  const fsdb=sdk.fs.getFirestore(app);
+  FB={sdk,auth};CAP.db=fbWrapDb(sdk,fsdb);MODE='cloud';
+  await new Promise(res=>{let first=true;
+    sdk.auth.onAuthStateChanged(auth,async u=>{
+      AUTH_USER=u;
+      if(u){await loadProfile(u.uid);
+        const nm=pendingName||u.displayName||'';if(nm&&!S.settings.name){S.settings.name=nm;save()}pendingName='';}
+      else{stopRec();stopSpeak();PID=null;S=null;D=null}
+      if(first){first=false;res()}else render();
+    });
+  });
+}
+const idToEmail=id=>`${id}@${ID_DOMAIN}`;
+function authMsg(e){const c=(e&&e.code)||'';
+  return ({'auth/email-already-in-use':'이미 사용 중인 아이디입니다.','auth/invalid-credential':'아이디 또는 비밀번호가 맞지 않습니다.','auth/wrong-password':'아이디 또는 비밀번호가 맞지 않습니다.','auth/user-not-found':'아이디 또는 비밀번호가 맞지 않습니다.','auth/invalid-email':'아이디 형식이 올바르지 않습니다.','auth/weak-password':'비밀번호는 6자 이상이어야 합니다.','auth/too-many-requests':'시도가 너무 많습니다. 잠시 후 다시 해 주세요.','auth/network-request-failed':'인터넷 연결을 확인해 주세요.','auth/operation-not-allowed':'서버에서 아이디/비밀번호 가입이 꺼져 있습니다. Firebase 설정을 확인하세요.'})[c]||('오류가 발생했습니다. '+(c||(e&&e.message)||''))}
+async function doAuth(){
+  if(authBusy)return;const msg=$('#authMsg');
+  const id=($('#auId').value||'').trim().toLowerCase(), pw=$('#auPw').value||'';
+  if(!/^[a-z0-9._-]{3,20}$/.test(id)){msg.textContent='아이디는 영문 소문자·숫자·. _ - 로 3~20자입니다.';return}
+  if(pw.length<6){msg.textContent='비밀번호는 6자 이상입니다.';return}
+  if(authTab==='signup'){
+    const pw2=$('#auPw2').value||'', nm=($('#auName').value||'').trim();
+    if(pw!==pw2){msg.textContent='비밀번호 확인이 일치하지 않습니다.';return}
+    if(!nm){msg.textContent='이름(표시용)을 입력해 주세요.';return}
+    pendingName=nm;
+  }
+  authBusy=true;msg.textContent=authTab==='signup'?'가입하는 중…':'로그인하는 중…';
+  try{
+    const A=FB.sdk.auth;
+    if(authTab==='signup'){const cr=await A.createUserWithEmailAndPassword(FB.auth,idToEmail(id),pw);try{await A.updateProfile(cr.user,{displayName:pendingName})}catch(e){}}
+    else await A.signInWithEmailAndPassword(FB.auth,idToEmail(id),pw);
+  }catch(e){msg.textContent=authMsg(e);pendingName=''}
+  authBusy=false;
+}
+async function doLogout(){await flush();try{await FB.sdk.auth.signOut(FB.auth)}catch(e){toast('로그아웃에 실패했습니다.')}}
+function viewAuth(){
+  if(!BOOTED)return `<div style="padding-top:20vh;text-align:center" class="mute">불러오는 중…</div>`;
+  if(!FB)return `<div style="padding-top:12vh"><h1>연결 실패</h1><p class="small" style="margin-top:10px">서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.</p><button class="btn" style="margin-top:14px" data-act="reload">새로고침</button></div>`;
+  const su=authTab==='signup';
+  return `<div style="padding-top:8vh;max-width:420px">
+    <h1>Speak 60</h1><p class="small mute" style="margin-top:6px">영어 스피킹 60분 · 로그인하면 아이폰·갤럭시·컴퓨터 어디서나 기록이 이어집니다.</p>
+    <div class="tabs2"><button class="${su?'':'on'}" data-act="authTab" data-t="login">로그인</button><button class="${su?'on':''}" data-act="authTab" data-t="signup">회원가입</button></div>
+    <label class="fl">아이디<input type="text" id="auId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="영문·숫자 3~20자"></label>
+    ${su?`<label class="fl">이름 (화면 표시용)<input type="text" id="auName" placeholder="예: 용수"></label>`:''}
+    <label class="fl">비밀번호<input type="password" id="auPw" autocomplete="${su?'new-password':'current-password'}" placeholder="6자 이상"></label>
+    ${su?`<label class="fl">비밀번호 확인<input type="password" id="auPw2" autocomplete="new-password"></label>`:''}
+    <button class="btn sig" style="width:100%;margin-top:14px" data-act="doAuth">${su?'가입하고 시작':'로그인'}</button>
+    <p class="small" id="authMsg" style="color:var(--alert);min-height:1.4em;margin-top:10px"></p>
+    ${su?`<p class="xs mute">비밀번호 찾기 기능은 없습니다. 비밀번호를 잊지 않도록 따로 적어 두세요.</p>`:''}
+  </div>`;
+}
+async function initCaps(){
+  if(FB_ON&&!IN_CLAUDE){try{await initFirebase()}catch(e){console.error(e);FB=null}return}
+  if(!IN_CLAUDE)return;
+  const names=Object.keys(CAP);
+  const got=await Promise.all(names.map(n=>window.claude.use(n).catch(()=>null)));
+  names.forEach((n,i)=>CAP[n]=got[i]);
+  if(CAP.db)MODE='cloud';
+  setupDictation();
+}
+const metaRef=pid=>CAP.db.doc('profiles/'+pid);
+const sesCol=pid=>CAP.db.doc('profiles/'+pid).collection('sessions');
+let cache={meta:'',ses:{}}, flushTimer=null, flushing=false, flushAgain=false, readOnly=false;
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function statsOf(st){const l=st.sessions[st.sessions.length-1];return {count:st.sessions.length,lastDate:l?l.date:'',lastScore:l?l.metrics.score:null}}
+async function loadStats(){
+  if(MODE!=='cloud'||FB)return;
+  await Promise.all(PROFILES.map(async p=>{try{const d=await metaRef(p.id).get();PSTATS[p.id]=d.exists?(d.data().stats||null):null}catch(e){}}));
+}
+async function loadCloud(pid){
+  const [m,q]=await Promise.all([metaRef(pid).get(),sesCol(pid).get()]);
+  const meta=m.exists?m.data():null;
+  const sessions=q.docs.map(d=>Object.assign({},d.data(),{_id:d.id})).sort((a,b)=>String(a.createdAt||a.date).localeCompare(String(b.createdAt||b.date)));
+  return {meta,sessions};
+}
+function setSync(st){syncState=st;const el=$('#syncState');if(el)el.innerHTML=syncText()}
+function syncText(){
+  if(MODE!=='cloud')return '<span class="mute">이 기기에만 저장</span>';
+  return {ok:'<span class="ok">☁ 동기화됨</span>',saving:'<span class="mute">☁ 저장 중…</span>',err:'<span class="bad">저장 실패 · 이 기기에 임시 보관</span>',ro:'<span class="bad">보기 권한 · 이 기기에만 저장</span>'}[syncState]||'<span class="ok">☁ 클라우드 저장</span>';
+}
+function scheduleFlush(){if(MODE!=='cloud'||readOnly)return;clearTimeout(flushTimer);setSync('saving');flushTimer=setTimeout(flush,1500)}
+async function flush(){
+  clearTimeout(flushTimer);
+  if(MODE!=='cloud'||!PID||readOnly)return;
+  if(flushing){flushAgain=true;return}
+  flushing=true;const pid=PID,st=S,dr=D;
+  try{
+    const body={cards:st.cards,custom:st.custom,settings:st.settings,apiKey:FB?(st.apiKey||null):null,draft:dr?JSON.parse(JSON.stringify(dr)):null,stats:statsOf(st)};
+    const mj=JSON.stringify(body);
+    if(mj!==cache.meta){await metaRef(pid).set(Object.assign({updatedAt:new Date().toISOString()},JSON.parse(mj)));cache.meta=mj}
+    for(const x of st.sessions){if(!x._id)x._id=newId();const j=JSON.stringify(x);
+      if(cache.ses[x._id]!==j){await sesCol(pid).doc(x._id).set(JSON.parse(j));cache.ses[x._id]=j}}
+    for(const id of Object.keys(cache.ses))if(!st.sessions.some(x=>x._id===id)){await sesCol(pid).doc(id).delete();delete cache.ses[id]}
+    PSTATS[pid]=statsOf(st);setSync('ok');
+  }catch(e){
+    if(e&&(e.code==='invalid_argument'||e.code==='permission-denied')){readOnly=true;setSync('ro');toast('이 링크에 쓰기 권한이 없어 기록이 이 기기에만 저장됩니다.')}
+    else if(e&&e.code==='quota_exceeded'){setSync('err');toast('클라우드 저장 공간이 가득 찼습니다. 백업 후 오래된 세션을 정리하세요.')}
+    else setSync('err');
+  }
+  flushing=false;if(flushAgain){flushAgain=false;flush()}
+}
+const profileName=()=>(S&&S.settings&&S.settings.name)||(AUTH_USER&&(AUTH_USER.displayName||String(AUTH_USER.email||'').split('@')[0]))||(PROFILES.find(p=>p.id===PID)||{}).name||'';
+function migrateLegacy(){ // 프로필 도입 전 기록은 용수 프로필로 옮김(원본도 보존)
+  try{[KEY,DKEY,AKEY_BASE].forEach(k=>{const v=localStorage.getItem(k),t=k+':yongsoo';if(v!=null&&localStorage.getItem(t)==null)localStorage.setItem(t,v)})}catch(e){}
+}
+async function loadProfile(pid){
+  PID=pid;try{localStorage.setItem(LAST,pid)}catch(e){}
+  S=load(pk(KEY),{sessions:[],cards:[],custom:{}});
+  let cloudDraft;cache={meta:'',ses:{}};readOnly=false;
+  if(MODE==='cloud'){
+    try{const c=await loadCloud(pid);
+      if(c.meta||c.sessions.length){S={sessions:c.sessions,cards:(c.meta&&c.meta.cards)||[],custom:(c.meta&&c.meta.custom)||{},settings:c.meta&&c.meta.settings,apiKey:(c.meta&&c.meta.apiKey)||null};cloudDraft=c.meta?c.meta.draft:null;
+        c.sessions.forEach(x=>{cache.ses[x._id]=JSON.stringify(x)})}
+      setSync('ok');
+    }catch(e){setSync('err');toast('클라우드에서 불러오지 못해 이 기기의 기록으로 엽니다.')}
+  }
+  S.sessions=S.sessions||[];S.cards=S.cards||[];S.custom=S.custom||{};
+  const def=PROFILES.find(p=>p.id===pid);
+  S.settings=Object.assign({rate:0.95,voice:'',len:'mine',model:'claude-sonnet-5',bg:def?def.bg:''},S.settings||{});
+  D=cloudDraft!==undefined?cloudDraft:load(pk(DKEY),null);
+  S.sessions.forEach(x=>{if(!x._id)x._id=newId()});
+  if(D){D.pausedMs=D.pausedMs||0;if(D.pausedAt===undefined)D.pausedAt=null;if(D.date!==todayStr())D.date=todayStr()}
+  tab='today';justSaved=null;reviewIdx=0;reveal=false;openIdx=null;genBusy={};
+  if(typeof genTried!=='undefined'){genTried={};genErr={};genProg={}}
+}
+function ask(msg){return new Promise(res=>{
+  const w=document.createElement('div');w.className='modal';
+  w.innerHTML=`<div class="box" role="dialog" aria-modal="true"><p>${esc(msg)}</p><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" data-m="0">취소</button><button class="btn" data-m="1">확인</button></div></div>`;
+  w.addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b&&e.target!==w)return;e.stopPropagation();w.remove();res(!!(b&&b.dataset.m==='1'))});
+  document.body.appendChild(w);w.querySelector('[data-m="1"]').focus();
+})}
+async function switchProfile(){stopRec();stopSpeak();releaseMic();await flush();PID=null;S=null;D=null;render()}
+const getKey=()=>{if(FB&&S)return S.apiKey||'';try{return localStorage.getItem(pk(AKEY_BASE))||''}catch(e){return ''}};
+const setKey=k=>{if(FB&&S){S.apiKey=k||null;save();return}try{k?localStorage.setItem(pk(AKEY_BASE),k):localStorage.removeItem(pk(AKEY_BASE))}catch(e){}};
+function save(){try{localStorage.setItem(pk(KEY),JSON.stringify(S))}catch(e){if(MODE!=='cloud')toast('브라우저 저장에 실패했습니다. 노트·설정 탭에서 백업 파일을 내려받으세요.')}scheduleFlush()}
+function saveDraft(){try{D?localStorage.setItem(pk(DKEY),JSON.stringify(D)):localStorage.removeItem(pk(DKEY))}catch(e){}scheduleFlush()}
+
+/* ================= helpers ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const words=t=>(t||'').trim().split(/\s+/).filter(Boolean).length;
+const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function todayStr(off=0){const d=new Date();d.setDate(d.getDate()+off);return ymd(d)}
+function addDays(ds,n){const [y,m,dd]=ds.split('-').map(Number);const d=new Date(y,m-1,dd);d.setDate(d.getDate()+n);return ymd(d)}
+const QTYPES={B:'기본',D:'묘사·루틴',E:'과거 경험',C:'변화·비교',O:'의견·이슈',R:'롤플레이'};
+const qType=q=>{const m=/^([BDECOR]):/.exec(q||'');return m?m[1]:null};
+const qText=q=>(q||'').replace(/^[BDECOR]:/,'').replace(/'/g,'’');
+TOPICS.forEach(t=>{if(t.id==='research'||t.id==='us')t.only='yongsoo'});
+const visibleTopics=()=>TOPICS.filter(t=>!t.only||t.only===PID||(S&&S.settings&&S.settings.faculty));
+function topicQs(t){const c=S.custom[t.id]||[];return t.id==='mine'?c:c.concat(t.qs)}
+function topicById(id){return TOPICS.find(t=>t.id===id)||TOPICS[0]}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>t.style.display='none',2600)}
+function wpm(a){return a&&a.secs>=10&&words(a.text)?Math.round(words(a.text)/(a.secs/60)):null}
+function avg(arr){const v=arr.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((s,x)=>s+x,0)/v.length:null}
+function r1(x){return x==null?'–':Math.round(x)}
+
+function suggestTopic(){
+  const used={};S.sessions.forEach(s=>used[s.topicId]=s.date);
+  const pool=visibleTopics().filter(t=>topicQs(t).length);
+  const fresh=pool.find(t=>!used[t.id]);
+  if(fresh)return fresh.id;
+  return pool.sort((a,b)=>used[a.id]<used[b.id]?-1:1)[0].id;
+}
+function ladder(qs){
+  const pick=t=>{const c=qs.filter(q=>qType(q)===t);return c.length?c[Math.floor(Math.random()*c.length)]:null};
+  const out=['B','D','E',Math.random()<.5?'C':'O','R'].map(pick).filter(Boolean);
+  return out.length?out:qs.slice().sort(()=>Math.random()-.5).slice(0,4);
+}
+function newDraft(){
+  const tid=suggestTopic();
+  return {date:todayStr(),phase:0,topicId:tid,sel:ladder(topicQs(topicById(tid))),filter:'',
+    answers:[],blocked:[],review:{ok:0,fuzzy:0,miss:0,ids:[]},prevDone:[],
+    self:{natural:3,confident:3},startedAt:Date.now(),pausedMs:0,pausedAt:null};
+}
+function elapsedSec(){
+  if(!D)return 0;const now=Date.now();
+  return Math.max(0,Math.floor((now-D.startedAt-(D.pausedMs||0)-(D.pausedAt?now-D.pausedAt:0))/1000));
+}
+function dueCards(){const t=todayStr();return S.cards.filter(c=>c.due<=t&&!(D&&D.review.ids.includes(c.id)))}
+function lastSession(){return S.sessions[S.sessions.length-1]}
+
+/* ================= metrics ================= */
+function computeMetrics(d){
+  const a1=d.answers.map(a=>a.a1), a2=d.answers.map(a=>a.a2);
+  const w1=avg(a1.map(a=>words(a.text))), w2=avg(a2.map(a=>words(a.text)));
+  const p1=avg(a1.map(wpm)), p2=avg(a2.map(wpm));
+  const allText=a1.map(a=>a.text).join(' ');
+  const fill=words(allText)?(allText.match(FILLERS)||[]).length/words(allText)*100:0;
+  let gain=null;
+  if(p1&&p2)gain=(p2-p1)/p1; else if(w1&&w2)gain=(w2-w1)/w1;
+  const rv=d.review, rt=rv.ok+rv.fuzzy+rv.miss;
+  const recall=rt?(rv.ok+rv.fuzzy*0.5)/rt:null;
+  const parts=[
+    {k:'발화량',w:25,v:w1==null?null:Math.min(w1/100,1),note:`1차 평균 ${r1(w1)}단어 (100단어=만점)`},
+    {k:'말하기 속도',w:20,v:p1==null?null:Math.min(p1/120,1),note:`1차 평균 ${r1(p1)} WPM (120=만점)`},
+    {k:'2차 개선',w:15,v:gain==null?null:Math.max(0,Math.min(gain,0.4))/0.4,note:gain==null?'2차 답변 없음':`${gain>=0?'+':''}${Math.round(gain*100)}% (+40%=만점)`},
+    {k:'복습 회상',w:20,v:recall,note:rt?`${rv.ok}기억 · ${rv.fuzzy}애매 · ${rv.miss}모름`:'복습 카드 없음'},
+    {k:'자기평가',w:20,v:(d.self.natural+d.self.confident-2)/8,note:`자연스러움 ${d.self.natural} · 자신감 ${d.self.confident}`}
+  ];
+  const used=parts.filter(p=>p.v!=null), W=used.reduce((s,p)=>s+p.w,0);
+  const score=W?Math.round(used.reduce((s,p)=>s+p.v*p.w,0)/W*100):0;
+  return {w1,w2,p1,p2,gain,fill,recall,parts,score};
+}
+
+/* ================= recorder ================= */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let active=null; // {key,timer,sr,final}
+function getObj(key){const [k,i]=key.split('-');return D.answers[+i][k]}
+function recHTML(key,target){
+  const o=getObj(key);
+  return `<div class="rec" data-box="${key}">
+    <div class="rec-bar">
+      <button class="btn sig" data-act="rec" data-key="${key}">${o.secs?'이어서 말하기':'말하기 시작'}</button>
+      <div class="meter"><div class="meta" id="meta-${key}">${metaText(o,target)}</div>
+      <div class="track"><div class="fill" id="fill-${key}" style="width:${Math.min(100,o.secs/target*100)}%"></div></div></div>
+    </div>
+    <textarea data-key="${key}" rows="4" placeholder="말하면 여기에 받아써집니다. 음성 인식이 안 되면 키보드 받아쓰기로 입력하세요.">${esc(o.text)}</textarea>
+    ${o.secs||o.text?`<button class="link" data-act="clear" data-key="${key}">지우고 다시 말하기</button>`:''}
+  </div>`;
+}
+function metaText(o,target){
+  const w=words(o.text), p=o.secs>=10&&w?Math.round(w/(o.secs/60)):null;
+  return `<span>${fmt(o.secs)} / 목표 ${fmt(target)}</span><span>${w}단어${p?` · ${p} WPM`:''}</span>`;
+}
+function refreshMeta(key){
+  const o=getObj(key), t=+document.querySelector(`[data-box="${key}"]`)?.closest('[data-target]')?.dataset.target||90;
+  const m=$('#meta-'+key), f=$('#fill-'+key);
+  if(m)m.innerHTML=metaText(o,t); if(f)f.style.width=Math.min(100,o.secs/t*100)+'%';
+}
+let micStream=null, REC=null, recRunning=false, micDenied=false;
+const IS_MOBILE=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+async function ensureMic(){
+  if(IS_MOBILE||IN_CLAUDE)return true; // 모바일은 음성인식이 직접 권한을 받음(스트림을 붙잡으면 인식이 막힘)
+  if(micStream&&micStream.active)return true;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return false;
+  try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});micDenied=false;return true}
+  catch(e){micDenied=true;return false}
+}
+function releaseMic(){try{micStream&&micStream.getTracks().forEach(t=>t.stop())}catch(e){}micStream=null}
+function getRecognizer(){
+  if(REC||!SR)return REC;
+  REC=new SR();REC.lang='en-US';REC.continuous=!IS_MOBILE; // 안드로이드 연속모드 중복 인식 버그 회피: 모바일은 문장 단위로 자동 재시작
+  REC.interimResults=true;
+  REC.onresult=e=>{if(!active)return;const o=getObj(active.key);let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal)active.final+=t.trim()+' ';else interim+=t}
+    o.text=(active.final+interim).trim();const ta=document.querySelector(`textarea[data-key="${active.key}"]`);if(ta)ta.value=o.text;refreshMeta(active.key)};
+  REC.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){micDenied=true;toast('마이크 권한이 막혀 있습니다. 주소창 왼쪽 아이콘에서 마이크를 허용하거나 키보드 받아쓰기를 쓰세요.')}};
+  REC.onstart=()=>{recRunning=true};
+  REC.onend=()=>{recRunning=false;if(active&&!micDenied){try{REC.start()}catch(e){}}};
+  return REC;
+}
+function setupDictation(){
+  const d=CAP.dictation;if(!d)return;
+  const sync=()=>{if(!active)return;const ta=document.querySelector(`textarea[data-key="${active.key}"]`);const o=getObj(active.key);if(ta)ta.value=o.text;refreshMeta(active.key)};
+  d.onPartial(({text})=>{if(!active)return;getObj(active.key).text=(active.final+text).trim();sync()});
+  d.onFinal(({text})=>{if(!active)return;active.final+=String(text).trim()+' ';getObj(active.key).text=active.final.trim();sync()});
+  d.onState(({state,reason})=>{if(state!=='idle'||!active||!reason||reason==='stopped')return;
+    if(reason==='not_granted'){dictDenied=true;toast('마이크 사용이 거부됐습니다. 키보드의 받아쓰기 버튼으로 입력하세요.')}
+    else if(reason==='time_limit'){try{d.start({language:'en-US'}).catch(()=>{})}catch(e){}}});
+}
+async function startRec(key){
+  if(active)stopRec();
+  const o=getObj(key), box=document.querySelector(`[data-box="${key}"]`);
+  box.classList.add('recording');
+  const btn=box.querySelector('[data-act="rec"]');btn.textContent='정지';btn.className='btn';
+  active={key,final:o.text?o.text.trim()+' ':''};
+  active.timer=setInterval(()=>{o.secs++;refreshMeta(key);if(o.secs%5===0)saveDraft()},1000);
+  if(CAP.dictation&&!dictDenied){ // 클릭에서 곧바로 시작해야 권한 요청이 뜸
+    CAP.dictation.start({language:'en-US'}).catch(e=>{if(!e)return;
+      if(e.code==='not_granted'){dictDenied=true;toast('마이크 사용이 거부됐습니다. 키보드의 받아쓰기 버튼으로 입력하세요.')}
+      else if(e.code!=='stopped'&&e.code!=='dismissed')toast('음성 인식을 시작하지 못했습니다. 키보드 받아쓰기로 입력하세요.')});
+    return;
+  }
+  if(!SR){toast('이 브라우저는 음성 인식을 지원하지 않습니다. 타이머는 작동하니 키보드 받아쓰기로 입력하세요.');return}
+  await ensureMic();
+  const r=getRecognizer();
+  if(!recRunning){try{r.start()}catch(e){}}  // 실행 중이면 onend에서 자동 재시작
+}
+function stopRec(){
+  if(!active)return;const a=active;active=null;clearInterval(a.timer);
+  if(CAP.dictation){try{CAP.dictation.stop().catch(()=>{})}catch(e){}}
+  try{REC&&recRunning&&REC.stop()}catch(e){}
+  const box=document.querySelector(`[data-box="${a.key}"]`);
+  if(box){box.classList.remove('recording');const b=box.querySelector('[data-act="rec"]');b.textContent='이어서 말하기';b.className='btn sig'}
+  saveDraft();
+}
+
+/* ================= views ================= */
+function header(){
+  const el=elapsedSec(), paused=!!D.pausedAt;
+  return `<div class="top">
+    <div class="clock"><span class="small mute">${D.date} · ${esc(topicById(D.topicId).ko)}</span><b id="clock">${fmt(el)} / 60:00</b></div>
+    <div class="ctrl">
+      <button class="btn ${paused?'sig':''}" data-act="pause">${paused?'계속하기':'일시정지'}</button>
+      <button class="btn ghost" data-act="resetTime">시간 초기화</button>
+      <button class="btn ghost" data-act="restart">처음부터 다시</button>
+    </div>
+    ${paused?`<p class="small" style="margin:8px 0 0;color:var(--alert)">일시정지 중입니다. 학습 시간이 멈춰 있고 녹음은 할 수 없습니다.</p>`:''}
+    <div class="phases">${PHASES.map((p,i)=>`<button style="flex:${p.min}" data-act="goPhase" data-i="${i}" title="${p.name} 단계로 이동" class="${i<D.phase?'done':i===D.phase?'now':''}">${p.name} ${p.min}′</button>`).join('')}</div>
+  </div>`;
+}
+function navBtns(nextLabel,nextOk=true){
+  return `<div class="row" style="margin-top:22px">
+    ${D.phase>0?`<button class="btn ghost" data-act="prev">이전 단계</button>`:''}
+    <button class="btn ${D.phase===4?'sig':''}" data-act="${D.phase===4?'finish':'next'}">${nextLabel}</button>
+  </div>
+  <p class="xs mute" style="margin-top:8px">권장 시간을 채우지 않아도 언제든 넘어갈 수 있습니다. 위 단계 막대를 눌러 원하는 단계로 바로 이동할 수도 있습니다.</p>`;
+}
+
+function viewProfiles(){
+  let last='';try{last=localStorage.getItem(LAST)||''}catch(e){}
+  if(!BOOTED)return `<div style="padding-top:20vh;text-align:center" class="mute">불러오는 중…</div>`;
+  const stat=id=>{if(MODE==='cloud'){const t=PSTATS[id];return t&&t.count?`${t.count}회 · 최근 ${t.lastDate} · ${t.lastScore}점`:'아직 기록 없음'}
+    try{const d=JSON.parse(localStorage.getItem(`${KEY}:${id}`)||'null');if(!d||!d.sessions||!d.sessions.length)return '아직 기록 없음';
+    const l=d.sessions[d.sessions.length-1];return `${d.sessions.length}회 · 최근 ${l.date} · ${l.metrics.score}점`}catch(e){return ''}};
+  return `<div style="padding-top:8vh">
+    <h1>누가 공부하나요?</h1>
+    <p class="small mute" style="margin-top:8px">세션, 표현 카드, 내 질문, 설정이 사람마다 따로 저장됩니다.</p>
+    <p class="small" style="margin-top:4px">${MODE==='cloud'?'☁ 기록이 Claude에 저장되어 아이폰·갤럭시·컴퓨터 어디서 열어도 이어집니다.':'이 기기에만 저장됩니다. 기기 간 연동은 Claude 게시 링크로 여세요.'}</p>
+    <div class="pgrid">${PROFILES.map(p=>`<button class="pcard ${p.id===last?'last':''}" data-act="pickProfile" data-id="${p.id}">
+      <b>${esc(p.name)}</b><span>${esc(stat(p.id))}</span>${p.id===last?'<em>최근 사용</em>':''}</button>`).join('')}</div>
+  </div>`;
+}
+function whoBar(){return `<div class="who"><span>${esc(profileName())} <span class="xs" id="syncState" style="font-weight:400;margin-left:6px">${syncText()}</span></span><button class="link" data-act="switchProfile">${FB?'로그아웃':'사용자 변경'}</button></div>`}
+function viewToday(){
+  if(justSaved!=null)return viewResult(S.sessions[justSaved],S.sessions[justSaved-1],true,justSaved);
+  if(!D){
+    const last=lastSession(), due=dueCards().length;
+    return whoBar()+`<h1>오늘의 60분</h1>
+      <p class="mute small" style="margin-top:8px">내 이야기를 내가 아는 영어로 먼저 말하고, 막힌 곳만 채워서, 같은 질문에 다시 답합니다.</p>
+      <div class="kpis">
+        <div class="kpi"><b>${streak()}</b><span>연속 학습일</span></div>
+        <div class="kpi"><b>${due}</b><span>오늘 복습할 표현</span></div>
+        <div class="kpi"><b>${last?last.metrics.score:'–'}</b><span>지난 세션 점수</span></div>
+        <div class="kpi"><b>${S.sessions.length}</b><span>누적 세션</span></div>
+      </div>
+      <h3>진행 순서</h3>
+      ${PHASES.map((p,i)=>`<p class="small"><b>${i+1}. ${p.name} (${p.min}분)</b> ${[
+        '어제까지 막혔던 표현 카드 넘기기 + 지난 질문을 보고 다시 말하기',
+        '하루 한 주제, 질문 3~5개 선택',
+        '번역기·모범답안 없이 내 영어로 먼저 말하기. 막힌 말은 한국어로 메모',
+        '막힌 말의 자연스러운 영어를 찾아 적고, 답을 보지 않고 다시 말하기',
+        '자기평가 후 저장 → 오늘 점수와 성장 기록 확인'][i]}</p>`).join('')}
+      <div style="margin-top:20px"><button class="btn sig" data-act="start">60분 시작</button></div>`;
+  }
+  const P=[phaseReview,phaseTopic,phaseFirst,phaseSecond,phaseWrap][D.phase];
+  return header()+P();
+}
+
+function phaseReview(){
+  const due=dueCards(), last=lastSession();
+  let h=`<h2>누적 복습</h2><p class="small mute">새 질문 전에 이전 표현부터. 영어를 떠올린 뒤 정답을 확인하세요.</p>`;
+  if(due.length){
+    const c=due[0];
+    h+=`<div class="flash"><p class="xs mute">남은 카드 ${due.length}장 · ${esc(topicById(c.topic).ko)}</p>
+      <div class="ko">${esc(c.ko)}</div>
+      ${reveal?`<div class="en">${esc(c.en)}</div>
+        <div class="row" style="justify-content:center;margin-top:16px">
+          <button class="btn" data-act="grade" data-g="ok" data-id="${c.id}">바로 떠올림</button>
+          <button class="btn ghost" data-act="grade" data-g="fuzzy" data-id="${c.id}">애매함</button>
+          <button class="btn ghost" data-act="grade" data-g="miss" data-id="${c.id}">못 떠올림</button></div>`
+      :`<div style="margin-top:16px"><button class="btn sig" data-act="reveal">영어로 말한 뒤 정답 보기</button></div>`}
+    </div>`;
+  }else{
+    h+=`<p class="small" style="margin:14px 0">${S.cards.length?'오늘 복습할 카드를 모두 끝냈습니다.':'아직 표현 카드가 없습니다. 오늘 막힌 표현이 내일부터 여기에 나옵니다.'}</p>`;
+  }
+  const rv=D.review;
+  if(rv.ok+rv.fuzzy+rv.miss)h+=`<p class="small mute">오늘 복습: 기억 ${rv.ok} · 애매 ${rv.fuzzy} · 모름 ${rv.miss}</p>`;
+  if(last){
+    h+=`<h3>지난 질문 다시 말하기 (${esc(topicById(last.topicId).ko)})</h3><p class="small mute">답을 보지 않고 소리 내어 30초 이상 답한 질문을 체크하세요.</p><div class="qpick">`;
+    last.answers.forEach((a,i)=>{h+=`<label><input type="checkbox" data-act="prevq" data-i="${i}" ${D.prevDone.includes(i)?'checked':''}> ${esc(qText(a.q))}</label>`});
+    h+=`</div>`;
+  }
+  return h+navBtns('주제 선택으로');
+}
+
+function phaseTopic(){
+  const t=topicById(D.topicId), qs=topicQs(t);
+  let h=`<h2>오늘의 주제</h2><p class="small mute">한 번에 다 하지 말고 하루 한 주제만. 아직 안 한 주제가 먼저 추천됩니다.</p><div class="topics" style="margin-top:12px">`;
+  const cnt={};S.sessions.forEach(s=>cnt[s.topicId]=(cnt[s.topicId]||0)+1);
+  visibleTopics().forEach(x=>{const n=topicQs(x).length;if(!n&&x.id!=='mine')return;
+    h+=`<button class="topic ${x.id===D.topicId?'on':''}" data-act="topic" data-id="${x.id}">${esc(x.ko)}<small>${n}문항 · ${cnt[x.id]?cnt[x.id]+'회 학습':'처음'}</small></button>`});
+  h+=`</div><h3>질문 고르기 (3~5개 권장, ${D.sel.length}개 선택)</h3>`;
+  if(!qs.length)h+=`<p class="small">이 주제에 질문이 없습니다. 노트·설정 탭에서 질문을 붙여넣으세요.</p>`;
+  h+=`<div class="row" style="gap:4px;margin-bottom:6px">${['',...Object.keys(QTYPES)].map(k=>`<button class="chip fbtn ${(D.filter||'')===k?'on':''}" data-act="filter" data-k="${k}">${k?QTYPES[k]:'전체'}</button>`).join('')}</div>
+    <div class="qpick">${qs.filter(q=>!D.filter||qType(q)===D.filter).map(q=>`<label><input type="checkbox" data-act="sel" data-q="${esc(q)}" ${D.sel.includes(q)?'checked':''}> <span>${qType(q)?`<span class="chip">${QTYPES[qType(q)]}</span> `:''}${esc(qText(q))}</span></label>`).join('')}</div>
+    <div class="row" style="margin-top:12px"><button class="btn ghost" data-act="shuffle">OPIc식 5문항 다시 뽑기</button>
+    <button class="btn ghost" data-act="shuffle4">무작위 4개</button>
+    <button class="btn ghost" data-act="copyPrompt">AI 음성 대화용 프롬프트 복사</button></div>
+    <p class="xs mute">OPIc식 5문항은 기본 → 묘사 → 과거 경험 → 비교·의견 → 롤플레이 순으로 난이도를 올립니다. 비교·의견과 롤플레이가 AL 판정의 핵심입니다.</p>
+    <p class="xs mute">프롬프트를 ChatGPT·Claude 음성 모드에 붙여넣으면, 이 질문들을 무작위로 묻고 답마다 원어민식 표현으로 피드백합니다.</p>`;
+  return h+navBtns('이 질문으로 1차 답변',D.sel.length>0);
+}
+
+function phaseFirst(){
+  let h=`<h2>1차 답변: 내 영어로 먼저</h2>
+    <p class="small mute">번역기·모범답안 금지. 틀려도, 막혀도 끝까지 말하세요. "이걸 영어로 뭐라 하지?" 싶은 순간이 오늘의 수확입니다. 막힌 말은 아래에 한국어로 적어 두세요.</p>`;
+  D.answers.forEach((a,i)=>{h+=`<div class="q" data-target="90"><div class="xs mute">Q${i+1}${qType(a.q)?' · '+QTYPES[qType(a.q)]:''}</div><div class="text">${esc(qText(a.q))}</div>${recHTML('a1-'+i,90)}</div>`});
+  h+=`<h3>막힌 말 메모 (${D.blocked.length})</h3>
+    <div class="row"><input type="text" id="blkIn" placeholder="예: 현장에 나가서 직접 확인했다" style="flex:1"><button class="btn" data-act="addBlk">추가</button></div>
+    ${D.blocked.map((b,i)=>`<div class="blk" style="grid-template-columns:1fr auto"><span>${esc(b.ko)}</span><button class="link" data-act="delBlk" data-i="${i}">삭제</button></div>`).join('')}`;
+  const ok=D.answers.some(a=>a.a1.text.trim());
+  return h+navBtns('표현 찾기로',ok);
+}
+
+function phaseSecond(){
+  let h=`<h2>표현 채우기 → 2차 답변</h2>
+    <p class="small mute">막힌 말의 자연스러운 영어를 AI나 사전으로 찾아 적으세요. 적은 표현은 내일부터 복습 카드로 돌아옵니다.</p>`;
+  if(D.blocked.length){
+    h+=D.blocked.map((b,i)=>`<div class="blk" style="grid-template-columns:1fr 1.3fr"><span class="small">${esc(b.ko)}</span>
+      <input type="text" data-act="blkEn" data-i="${i}" value="${esc(b.en||'')}" placeholder="자연스러운 영어 표현"></div>`).join('');
+  }else h+=`<p class="small">메모한 막힌 말이 없습니다. 1차 답변 중 어색했던 문장을 이전 단계에서 추가해도 됩니다.</p>`;
+  h+=`<h3>2차 답변: 질문만 보고 다시</h3><p class="small mute">1차 답변을 읽고 외우지 말고, 질문만 보고 다시 말하세요. 첫 번째보다 매끄러우면 성공입니다.</p>`;
+  D.answers.forEach((a,i)=>{h+=`<div class="q" data-target="90"><div class="xs mute">Q${i+1}${qType(a.q)?' · '+QTYPES[qType(a.q)]:''}</div><div class="text">${esc(qText(a.q))}</div>
+    <details style="margin-top:6px"><summary class="xs mute" style="cursor:pointer">1차 답변 보기 (${words(a.a1.text)}단어 · ${fmt(a.a1.secs)})</summary><p class="small">${esc(a.a1.text)||'(없음)'}</p></details>
+    ${recHTML('a2-'+i,90)}</div>`});
+  return h+navBtns('정리로');
+}
+
+function phaseWrap(){
+  const m=computeMetrics(D);
+  return `<h2>정리와 자기평가</h2>
+    <p class="small mute">오늘 말한 느낌을 솔직하게. 점수는 아래 기준으로 자동 계산됩니다.</p>
+    <h3>자연스러움 <span id="vn">${D.self.natural}</span>/5</h3>
+    <input type="range" min="1" max="5" value="${D.self.natural}" data-act="self" data-k="natural">
+    <h3>자신감 <span id="vc">${D.self.confident}</span>/5</h3>
+    <input type="range" min="1" max="5" value="${D.self.confident}" data-act="self" data-k="confident">
+    <h3>예상 점수</h3><div class="score-big" id="preScore">${m.score}</div>
+    <div class="bars" id="preBars">${barsHTML(m)}</div>
+    <p class="xs mute" style="margin-top:10px">필러(um, uh, like 등): 100단어당 ${m.fill.toFixed(1)}회 · 새 복습 카드 ${D.blocked.filter(b=>(b.en||'').trim()).length}장</p>`
+    +navBtns('저장하고 오늘 결과 보기');
+}
+function barsHTML(m){return m.parts.map(p=>`<div class="r"><span>${p.k}<br><span class="xs mute">${p.note}</span></span><div class="t"><i style="width:${p.v==null?0:p.v*100}%"></i></div><b style="text-align:right">${p.v==null?'–':Math.round(p.v*p.w)}</b></div>`).join('')}
+
+function viewResult(s,prev,fresh,idx){
+  const m=s.metrics;
+  const d=(a,b,u='')=>b==null||a==null?'':`<span class="${a-b>=0?'delta-up':'delta-down'}"> ${a-b>=0?'+':''}${Math.round(a-b)}${u}</span>`;
+  const avg7=avg(S.sessions.slice(-8,-1).map(x=>x.metrics.score));
+  return `<h1>${fresh?'오늘 결과':esc(s.date)+' 결과'}</h1>
+    <p class="small mute">${esc(s.date)} · ${esc(topicById(s.topicId).ko)} · ${s.minutes}분 · 질문 ${s.answers.length}개</p>
+    <div class="row" style="align-items:flex-end;gap:14px;margin-top:14px">
+      <div class="score-big">${m.score}</div>
+      <div class="small">직전 대비${d(m.score,prev?.metrics.score)||' –'}<br>최근 7회 평균 ${avg7==null?'–':Math.round(avg7)}</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><b>${r1(m.w1)}${d(m.w1,prev?.metrics.w1)}</b><span>1차 평균 단어 수</span></div>
+      <div class="kpi"><b>${r1(m.p1)}${d(m.p1,prev?.metrics.p1)}</b><span>1차 WPM</span></div>
+      <div class="kpi"><b>${m.gain==null?'–':(m.gain>=0?'+':'')+Math.round(m.gain*100)+'%'}</b><span>1차→2차 개선</span></div>
+      <div class="kpi"><b>${m.recall==null?'–':Math.round(m.recall*100)+'%'}</b><span>복습 회상률</span></div>
+    </div>
+    <div class="bars">${barsHTML(m)}</div>
+    ${s.cardsAdded?`<p class="small" style="margin-top:12px">새 표현 ${s.cardsAdded}장이 내일 복습에 추가됐습니다.</p>`:''}
+    <h3>원어민 박사 스크립트</h3>
+    <p class="small mute">내가 말한 내용과 사실을 그대로 두고, 미국에서 나고 자란 공학 박사가 같은 이야기를 말로 한다면 어떻게 할지 다시 쓴 스크립트입니다. 길이는 원어민 대화 속도(분당 약 150단어)에 맞춥니다.</p>
+    <div class="row" style="margin:10px 0">
+      <select data-act="setLen" style="width:auto">${[['mine','내 발화 시간에 맞춤'],['60','60초'],['90','90초'],['120','120초']].map(([v,l])=>`<option value="${v}" ${String(S.settings.len)===v?'selected':''}>${l}</option>`).join('')}</select>
+      <label class="small">속도 <input type="range" min="0.6" max="1.2" step="0.05" value="${S.settings.rate}" data-act="setRate" style="width:110px;vertical-align:middle"> <span id="rateV">${S.settings.rate}x</span></label>
+    </div>
+    ${(()=>{const need=s.answers.some(a=>hasAnswer(a)&&!a.model);
+      if(need&&!genTried[idx]&&!genBusy[idx])autoGen=idx;
+      const pg=genProg[idx];
+      return `<div class="row" style="margin-bottom:8px">
+        <button class="btn sig" data-act="genAll" data-i="${idx}" ${genBusy[idx]?'disabled':''}>${genBusy[idx]?`스크립트 작성 중… ${pg?pg.done+'/'+pg.total:''}`:(s.answers.some(a=>a.model)?'전체 다시 작성':'스크립트 작성')}</button></div>
+      ${genErr[idx]?`<p class="small" style="color:var(--alert)">${esc(genErr[idx])}</p>`:''}
+      <details ${genErr[idx]&&!getKey()?'open':''} style="margin-bottom:6px"><summary class="small mute" style="cursor:pointer">수동으로 작성하기 (API 키 없이)</summary>
+        <div class="small" style="background:var(--card);padding:12px;border-radius:6px;margin-top:6px">
+        <p style="margin-top:0">프롬프트를 복사해 Claude나 ChatGPT에 붙여넣고, 받은 답을 아래 칸에 그대로 붙여넣으세요.</p>
+        <button class="btn ghost" data-act="copyModel" data-i="${idx}">스크립트 요청 프롬프트 복사</button>
+        <textarea id="pasteModel" rows="4" style="margin-top:8px" placeholder="### Q1&#10;(스크립트)&#10;### Q2&#10;..."></textarea>
+        <button class="btn" style="margin-top:6px" data-act="pasteModel" data-i="${idx}">붙여넣은 스크립트 저장</button></div></details>`})()}
+    ${s.answers.map((a,j)=>{const tg=targetFor(a);return `<div class="q"><div class="xs mute">Q${j+1}${qType(a.q)?' · '+QTYPES[qType(a.q)]:''}</div><div class="text">${esc(qText(a.q))}</div>
+      <p class="xs mute" style="margin-top:8px">내 답변 · 1차 ${words(a.a1.text)}단어 ${fmt(a.a1.secs)} → 2차 ${words(a.a2.text)}단어 ${fmt(a.a2.secs)}</p>
+      <p class="small">${esc(a.a2.text||a.a1.text)||'<span class="mute">(답변 없음)</span>'}</p>
+      ${a.model?`<div class="model">
+        <div class="row" style="justify-content:space-between"><span class="xs mute">원어민 스크립트 · ${words(a.model.text)}단어 · 약 ${fmt(Math.round(words(a.model.text)/2.5))}</span>
+        <button class="btn spk" data-act="speak" data-i="${idx}" data-j="${j}" aria-label="스크립트 듣기">🔊 듣기</button></div>
+        <p class="script">${esc(a.model.text)}</p>
+        ${(a.model.phrases||[]).length?`<p class="xs mute" style="margin-bottom:2px">핵심 표현</p>${a.model.phrases.map(ph=>`<p class="small" style="margin:2px 0"><b>${esc(ph.en)}</b> <span class="mute">${esc(ph.ko||'')}</span></p>`).join('')}
+        <button class="link" data-act="phrasesToCards" data-i="${idx}" data-j="${j}">${a.model.carded?'복습 카드에 추가됨':'핵심 표현을 복습 카드에 추가'}</button>`:''}
+        <button class="link" data-act="genOne" data-i="${idx}" data-j="${j}" style="margin-left:12px">이 문항만 다시 작성</button>
+      </div>`:`<p class="xs mute">${hasAnswer(a)?(genBusy[idx]?`원어민 스크립트 작성 중… (목표 ${tg.secs}초 · 약 ${tg.words}단어)`:`목표 길이 ${tg.secs}초 · 약 ${tg.words}단어 · 아직 작성되지 않음`):'1차·2차 답변이 없어 스크립트를 작성하지 않습니다.'}</p>`}
+    </div>`}).join('')}
+    <div class="row" style="margin-top:18px">${fresh?`<button class="btn" data-act="closeResult">확인</button>`:`<button class="btn ghost" data-tab="growth">성장 기록으로</button>`}</div>`;
+}
+
+function viewReview(){
+  const due=dueCards(), all=S.cards;
+  const byBox={};all.forEach(c=>{const k=c.interval>=14?'장기':c.interval>=3?'중기':'단기';byBox[k]=(byBox[k]||0)+1});
+  let h=`<h1>복습</h1><p class="small mute">막힌 표현은 1·3·7·14·30·60일 간격으로 돌아옵니다. 못 떠올리면 1일로 리셋됩니다.</p>
+    <div class="kpis"><div class="kpi"><b>${due.length}</b><span>오늘 복습할 카드</span></div><div class="kpi"><b>${all.length}</b><span>전체 표현</span></div>
+    <div class="kpi"><b>${byBox['장기']||0}</b><span>장기 기억 (14일+)</span></div><div class="kpi"><b>${(byBox['단기']||0)+(byBox['중기']||0)}</b><span>익히는 중</span></div></div>`;
+  if(due.length&&!D){
+    const c=due[reviewIdx%due.length];
+    h+=`<div class="flash"><div class="ko">${esc(c.ko)}</div>${reveal?`<div class="en">${esc(c.en)}</div>
+      <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" data-act="grade" data-g="ok" data-id="${c.id}">바로 떠올림</button>
+      <button class="btn ghost" data-act="grade" data-g="fuzzy" data-id="${c.id}">애매함</button><button class="btn ghost" data-act="grade" data-g="miss" data-id="${c.id}">못 떠올림</button></div>`
+      :`<div style="margin-top:16px"><button class="btn sig" data-act="reveal">정답 보기</button></div>`}</div>`;
+  }else if(D&&due.length)h+=`<p class="small">진행 중인 60분 세션의 1단계에서 복습하세요. 결과가 오늘 점수에 반영됩니다.</p>`;
+  h+=`<h3>지난 세션 질문으로 말하기</h3><p class="small mute">답을 보지 말고 질문만 보고 소리 내어 답하세요.</p>`;
+  const recent=S.sessions.slice(-5).reverse();
+  if(!recent.length)h+=`<p class="small">아직 기록이 없습니다.</p>`;
+  recent.forEach(s=>{h+=`<details class="q"><summary style="cursor:pointer"><b>${esc(s.date)}</b> · ${esc(topicById(s.topicId).ko)}</summary>
+    ${s.answers.map(a=>`<p class="small" style="margin-top:8px"><b>${esc(qText(a.q))}</b></p><details><summary class="xs mute" style="cursor:pointer">내 2차 답변 보기</summary><p class="small">${esc(a.a2.text||a.a1.text)}</p></details>`).join('')}</details>`});
+  return h;
+}
+
+function lineChart(series,labels,max){
+  const W=640,H=180,P=28,n=labels.length;if(n<1)return'';
+  const x=i=>P+(n===1?(W-2*P)/2:i*(W-2*P)/(n-1)), y=v=>H-P-(v/max)*(H-2*P);
+  let g='';[0,.5,1].forEach(f=>{const yy=y(max*f);g+=`<line x1="${P}" x2="${W-P/2}" y1="${yy}" y2="${yy}" stroke="var(--concrete)"/><text x="2" y="${yy+3}">${Math.round(max*f)}</text>`});
+  series.forEach(s=>{const pts=s.v.map((v,i)=>v==null?null:[x(i),y(Math.min(v,max))]).filter(Boolean);
+    if(pts.length>1)g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2.5" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+    pts.forEach(p=>g+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${s.c}"/>`)});
+  const step=Math.ceil(n/8);labels.forEach((l,i)=>{if(i%step===0||i===n-1)g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${l}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>
+    <div class="row xs mute">${series.map(s=>`<span><span style="display:inline-block;width:10px;height:10px;background:${s.c};border-radius:2px"></span> ${s.n}</span>`).join('')}</div>`;
+}
+function streak(){
+  const days=new Set(S.sessions.map(s=>s.date));let n=0,off=days.has(todayStr())?0:-1;
+  while(days.has(todayStr(off))){n++;off--}return n;
+}
+function viewGrowth(){
+  if(openIdx!=null&&S.sessions[openIdx])return viewResult(S.sessions[openIdx],S.sessions[openIdx-1],false,openIdx);
+  const ss=S.sessions;
+  if(!ss.length)return `<h1>성장</h1><p class="small" style="margin-top:12px">첫 60분을 마치면 여기에 날짜별 점수와 지표가 쌓입니다.</p>`;
+  const last=ss.slice(-30), labels=last.map(s=>s.date.slice(5));
+  const first=avg(ss.slice(0,3).map(s=>s.metrics.score)), recent=avg(ss.slice(-3).map(s=>s.metrics.score));
+  const fw=avg(ss.slice(0,3).map(s=>s.metrics.w1)), rw=avg(ss.slice(-3).map(s=>s.metrics.w1));
+  const totalMin=ss.reduce((s,x)=>s+x.minutes,0);
+  const sign=v=>v==null?'–':(v>=0?'+':'')+Math.round(v);
+  return `<h1>성장</h1>
+    <div class="kpis">
+      <div class="kpi"><b>${sign(recent-first)}</b><span>점수 변화 (첫 3회 → 최근 3회 평균)</span></div>
+      <div class="kpi"><b>${sign(rw-fw)}</b><span>1차 답변 단어 수 변화</span></div>
+      <div class="kpi"><b>${streak()}일</b><span>연속 학습</span></div>
+      <div class="kpi"><b>${Math.round(totalMin/60*10)/10}h</b><span>누적 학습 · ${ss.length}세션</span></div>
+    </div>
+    <h3>일일 점수</h3>${lineChart([{n:'점수',c:'var(--slate)',v:last.map(s=>s.metrics.score)}],labels,100)}
+    <h3>발화량과 속도</h3>${lineChart([{n:'1차 평균 단어',c:'var(--slate)',v:last.map(s=>s.metrics.w1)},{n:'1차 WPM',c:'var(--signal)',v:last.map(s=>s.metrics.p1)}],labels,Math.max(150,...last.map(s=>Math.max(s.metrics.w1||0,s.metrics.p1||0))))}
+    <h3>날짜별 기록</h3>
+    <div class="tbl"><table><thead><tr><th>날짜</th><th>주제</th><th>점수</th><th>단어</th><th>WPM</th><th>개선</th><th>회상</th><th>필러</th></tr></thead><tbody>
+    ${ss.slice().reverse().map((s,ri)=>{const m=s.metrics,i=ss.length-1-ri;return `<tr data-act="openSession" data-i="${i}" style="cursor:pointer">
+      <td>${s.date.slice(5)}</td><td>${esc(topicById(s.topicId).ko)}</td><td><b>${m.score}</b></td><td>${r1(m.w1)}</td><td>${r1(m.p1)}</td>
+      <td>${m.gain==null?'–':Math.round(m.gain*100)+'%'}</td><td>${m.recall==null?'–':Math.round(m.recall*100)+'%'}</td><td>${m.fill.toFixed(1)}</td></tr>`}).join('')}
+    </tbody></table></div>
+    <p class="xs mute" style="margin-top:10px">점수 = 발화량 25 + 속도 20 + 2차 개선 15 + 복습 회상 20 + 자기평가 20. 측정 안 된 항목은 빼고 비율로 환산합니다. 행을 누르면 그날 답변을 볼 수 있습니다.</p>`;
+}
+
+function viewNotes(){
+  const opts=visibleTopics().map(t=>`<option value="${t.id}">${esc(t.ko)}</option>`).join('');
+  return whoBar()+`<h1>노트·설정</h1>
+    ${FB?`<h3>표시 이름</h3><div class="row"><input type="text" id="nameText" value="${esc(S.settings.name||'')}" style="flex:1"><button class="btn" data-act="saveName">저장</button></div>`:''}
+    <h3>주제 구성</h3>
+    <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-act="faculty" ${S.settings.faculty||(!FB&&PID==='yongsoo')?'checked':''} ${!FB&&PID==='yongsoo'?'disabled':''}> 교수 임용 주제(연구·강의, 미국 생활) 포함</label>
+    <h3>내 배경 (원어민 스크립트용)</h3>
+    <p class="small mute">원어민 스크립트는 '이 배경을 가진 사람이 미국에서 나고 자랐다면'을 기준으로 씁니다. 영어로 직업·교육 수준·목표를 한 문장으로 적어 주세요.</p>
+    <textarea id="bgText" rows="3" placeholder="e.g. a Korean product engineer with a master's degree, preparing for OPIc AL">${esc(S.settings.bg||'')}</textarea>
+    <div class="row" style="margin-top:6px"><button class="btn" data-act="saveBg">배경 저장</button></div>
+    <h3>내 질문 붙여넣기</h3>
+    <p class="small mute">가진 질문 리스트를 한 줄에 하나씩 붙여넣으세요. '내 질문' 주제는 붙여넣은 질문만 쓰고, 다른 주제는 기본 질문 앞에 추가됩니다.</p>
+    <select id="cTopic">${opts}</select>
+    <textarea id="cText" rows="7" style="margin-top:6px" placeholder="What do you do for work?&#10;Where are you from?"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" data-act="saveCustom">저장</button><span class="xs mute" id="cInfo"></span></div>
+    <h3>표현 카드 (${S.cards.length})</h3>
+    ${S.cards.length?`<input type="text" id="cardSearch" placeholder="검색">`:''}
+    <div id="cardList">${cardList('')}</div>
+    <h3>원어민 스크립트 설정</h3>
+    ${CAP.sample?`<p class="small">Claude에서 열려 있어 API 키 없이 자동 작성됩니다.</p>`:`<p class="small mute">Anthropic API 키를 넣으면 결과 화면에서 스크립트가 자동 작성됩니다. ${FB?'키는 내 계정에만 저장되어 어느 기기에서 로그인해도 쓸 수 있고, 다른 사람은 볼 수 없습니다.':'키는 이 브라우저에만 저장됩니다.'} 백업 파일에는 포함되지 않습니다.</p>
+    <input type="password" id="apiKey" placeholder="sk-ant-..." value="${esc(getKey())}" autocomplete="off">
+    <div class="row" style="margin-top:6px"><input type="text" id="modelName" value="${esc(S.settings.model)}" style="flex:1" aria-label="모델 이름">
+    <button class="btn" data-act="saveKey">저장</button><button class="link" data-act="delKey">키 삭제</button></div>`}
+    <h3>읽어주기 음성</h3>
+    <select id="voiceSel"><option value="">자동 선택 (미국 영어)</option></select>
+    <div class="row" style="margin-top:6px"><button class="btn ghost" data-act="testVoice">음성 미리 듣기</button></div>
+    <h3>백업</h3>
+    <p class="small mute">${MODE==='cloud'?'기록은 Claude에 저장되어 어느 기기에서나 이어집니다. 만일에 대비해 가끔 백업 파일을 받아 두세요.':'기록은 이 브라우저에만 저장됩니다. 브라우저 데이터를 지우거나 기기를 바꾸면 사라지니 주 1회 백업하세요.'}</p>
+    <div class="row"><button class="btn" data-act="export">백업 파일 내려받기</button><button class="btn ghost" data-act="import">백업 불러오기</button></div>
+    <h3>초기화</h3><button class="btn ghost" style="color:var(--alert);border-color:var(--alert)" data-act="reset">모든 기록 삭제</button>`;
+}
+function cardList(q){
+  const list=S.cards.filter(c=>!q||(c.ko+c.en).toLowerCase().includes(q.toLowerCase()));
+  if(!list.length)return `<p class="small mute">${S.cards.length?'검색 결과가 없습니다.':'2차 단계에서 영어를 채운 막힌 표현이 카드가 됩니다.'}</p>`;
+  return list.slice().reverse().map(c=>`<div class="blk" style="grid-template-columns:1fr 1.2fr auto"><span class="small">${esc(c.ko)}</span><span class="small"><b>${esc(c.en)}</b><br><span class="xs mute">다음 복습 ${c.due.slice(5)} · 간격 ${c.interval}일</span></span><button class="link" data-act="delCard" data-id="${c.id}">삭제</button></div>`).join('');
+}
+
+/* ================= native script ================= */
+function targetFor(a){
+  const L=S.settings.len;
+  const secs=L==='mine'?Math.max(30,Math.min(180,Math.max(a.a1.secs||0,a.a2.secs||0)||60)):+L;
+  return {secs,words:Math.round(secs*2.5)};
+}
+function persona(){
+  const bg=(S.settings.bg||'').trim()||'a Korean adult learner of English preparing for the OPIc AL speaking test';
+  return `You are rewriting a spoken answer by ${bg}.
+Rewrite it the way the SAME person would say it if they had been born and raised in the US: a native speaker of General American English with the same education level and profession. Educated and articulate, but natural spoken English (contractions, natural discourse markers like "honestly", "the thing is", "so", varied sentence length), never written-essay style.
+Rules: keep the speaker's own facts, opinions, and story; do not invent new personal facts (you may add brief generic elaboration that clearly fits what they said); answer every part of the question; make it flow as one natural spoken turn.`;
+}
+function answerText(a){return (a.a2.text||a.a1.text||'').trim()}
+function onePrompt(a){
+  const tg=targetFor(a), t=answerText(a);
+  return `${persona()}
+Target length: about ${tg.words} words (about ${tg.secs} seconds at 150 words per minute), within ±10%.
+Question: ${qText(a.q)}
+Speaker's answer (speech-recognition transcript, may contain recognition errors): ${t||'(no answer given — write a natural model answer using only generic, plausible details)'}
+Return ONLY JSON, no markdown: {"script":"...","phrases":[{"en":"a natural expression used in the script","ko":"짧은 한국어 뜻"}]} with exactly 3 phrases.`;
+}
+function batchPrompt(s){
+  return `${persona()}
+Do this for each question below. Match each target length (150 words per minute, within ±10%).
+Return ONLY the scripts in exactly this format, nothing else:
+### Q1
+(script)
+### Q2
+(script)
+
+${s.answers.map((a,j)=>{const tg=targetFor(a);return `Q${j+1} (target ≈ ${tg.words} words / ${tg.secs} s)
+Question: ${qText(a.q)}
+Speaker's answer: ${answerText(a)||'(no answer given)'}`}).join('\n\n')}`;
+}
+let genTried={}, genErr={}, genProg={}, autoGen=null;
+function parseScript(raw){
+  const txt=String(raw||'').replace(/```json|```/g,'');
+  const j=JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));
+  if(!j.script)throw new Error('스크립트가 비어 있습니다');
+  return {text:String(j.script).trim(),phrases:(j.phrases||[]).slice(0,3),at:new Date().toISOString(),target:null};
+}
+async function callClaude(prompt){
+  if(CAP.sample){
+    let r;try{r=await CAP.sample(prompt,{modelTier:'default'})}catch(e){const err=new Error((e&&e.message)||'AI 호출 실패');err.sampleCode=e&&e.code;throw err}
+    return parseScript(r.text);
+  }
+  const key=getKey();
+  const headers={'content-type':'application/json'};
+  if(key)Object.assign(headers,{'x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'});
+  let res;
+  try{
+    res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers,
+      body:JSON.stringify({model:key?(S.settings.model||'claude-sonnet-5'):'claude-sonnet-4-6',max_tokens:key?1500:1000,messages:[{role:'user',content:prompt}]})});
+  }catch(e){const err=new Error('NETWORK');err.net=true;throw err}
+  let data={};try{data=await res.json()}catch(e){}
+  if(!res.ok){const err=new Error(data?.error?.message||('HTTP '+res.status));err.auth=(res.status===401||res.status===403);throw err}
+  const txt=(data.content||[]).map(b=>b.type==='text'?b.text:'').join('').replace(/```json|```/g,'');
+  const j=JSON.parse(txt.slice(txt.indexOf('{'),txt.lastIndexOf('}')+1));
+  if(!j.script)throw new Error('스크립트가 비어 있습니다');
+  return {text:j.script.trim(),phrases:(j.phrases||[]).slice(0,3),at:new Date().toISOString(),target:null};
+}
+const hasAnswer=a=>!!answerText(a);
+async function genScripts(i,only){
+  const s=S.sessions[i];if(!s||genBusy[i])return;
+  const list=s.answers.map((a,j)=>j).filter(j=>(only==null||j===only)&&hasAnswer(s.answers[j]));
+  genTried[i]=true;genErr[i]='';
+  if(!list.length){genErr[i]='1차·2차 답변이 모두 비어 있어 스크립트를 쓸 내용이 없습니다.';render(true);return}
+  genBusy[i]=true;genProg[i]={done:0,total:list.length};render(true);
+  let fail=0,last=null;
+  for(const j of list){
+    try{const m=await callClaude(onePrompt(s.answers[j]));m.target=targetFor(s.answers[j]).secs;s.answers[j].model=m;save()}
+    catch(e){fail++;last=e}
+    genProg[i].done++;render(true);
+  }
+  genBusy[i]=false;
+  if(fail){
+    if(last&&last.sampleCode==='not_granted')genErr[i]='Claude 사용 요청을 거절해서 자동 작성을 못 했습니다. 페이지를 새로 열고 다시 작성을 누르면 다시 묻습니다. 아래 수동 작성도 쓸 수 있습니다.';
+    else if(last&&last.sampleCode==='rate_limited')genErr[i]='요청이 많아 잠시 막혔습니다. 1~2분 뒤 다시 작성을 눌러 주세요.';
+    else if(last&&last.sampleCode)genErr[i]=`자동 작성에 실패했습니다 (${last.message}). 다시 작성을 눌러 주세요.`;
+    else if(last&&(last.net||last.auth)&&!getKey())genErr[i]='자동 작성에는 노트·설정 탭의 Anthropic API 키가 필요합니다. 키 없이 쓰려면 아래 수동 작성을 이용하세요.';
+    else if(last&&last.auth)genErr[i]='API 키가 거부됐습니다. 노트·설정 탭에서 키를 확인하세요.';
+    else genErr[i]=`${fail}개 문항 작성에 실패했습니다 (${last?last.message:''}). 다시 작성을 누르세요.`;
+  }
+  render(true);
+  toast(fail?`${list.length-fail}/${list.length}개 문항 작성`:'스크립트를 모두 작성했습니다.');
+}
+function parsePasted(i,txt){
+  const s=S.sessions[i];const parts=txt.split(/^\s*#{2,3}\s*Q\s*(\d+)\s*$/m);let n=0;
+  for(let k=1;k<parts.length;k+=2){const j=+parts[k]-1,body=(parts[k+1]||'').trim();
+    if(s.answers[j]&&body){s.answers[j].model={text:body,phrases:[],at:new Date().toISOString(),target:targetFor(s.answers[j]).secs};n++}}
+  if(!n&&s.answers.length===1&&txt.trim()){s.answers[0].model={text:txt.trim(),phrases:[],at:new Date().toISOString()};n=1}
+  save();return n;
+}
+/* ---- text to speech ---- */
+let speakBtn=null, speakTok=0, ttsOff=false;
+const CLAUDE_VOICES=[['buttery','Claude 음성 A (기본)'],['airy','Claude 음성 B'],['glassy','Claude 음성 C'],['rounded','Claude 음성 D']];
+function voices(){return (window.speechSynthesis?speechSynthesis.getVoices():[]).filter(v=>/^en[-_]US/i.test(v.lang))}
+const browserVoiceName=()=>{const v=S.settings.voice||'';return v.startsWith('browser:')?v.slice(8):(v&&!v.startsWith('claude:')?v:'')};
+function useClaudeTTS(){const v=S.settings.voice||'';return !!CAP.tts&&!ttsOff&&(v===''||v.startsWith('claude:'))}
+function pickVoice(){
+  const vs=voices(),want=browserVoiceName();if(want){const v=vs.find(x=>x.name===want);if(v)return v}
+  const pref=['Google US English','Microsoft Aria','Microsoft Jenny','Microsoft Guy','Samantha','Alex','Microsoft Zira','Microsoft David'];
+  for(const p of pref){const v=vs.find(x=>x.name.includes(p));if(v)return v}
+  return vs[0]||null;
+}
+function fillVoices(){const sel=$('#voiceSel');if(!sel)return;
+  const cur=S.settings.voice||'';const vs=voices();let h='';
+  if(CAP.tts)h+=CLAUDE_VOICES.map(([k,l])=>`<option value="claude:${k}" ${(cur===''&&k==='buttery')||cur==='claude:'+k?'selected':''}>${l}</option>`).join('');
+  else h+=`<option value="">자동 선택 (미국 영어)</option>`;
+  h+=vs.map(v=>`<option value="browser:${esc(v.name)}" ${browserVoiceName()===v.name?'selected':''}>기기 음성 · ${esc(v.name)}</option>`).join('');
+  if(!CAP.tts&&!vs.length)h+='<option disabled>이 브라우저에 미국 영어 음성이 없습니다</option>';
+  sel.innerHTML=h}
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>{if(PID&&tab==='notes')fillVoices()};
+function resetSpeakBtn(){if(speakBtn){speakBtn.textContent='🔊 듣기';speakBtn.classList.remove('playing')}speakBtn=null}
+function stopSpeak(){speakTok++;if(CAP.tts){try{CAP.tts.stop().catch(()=>{})}catch(e){}}if(window.speechSynthesis)speechSynthesis.cancel();resetSpeakBtn()}
+const sentences=t=>(t.match(/[^.!?]+[.!?]+["'’”)\]]*|[^.!?]+$/g)||[t]).map(x=>x.trim()).filter(Boolean);
+function speak(text,btn){
+  const same=!!btn&&speakBtn===btn;stopSpeak();if(same)return;
+  const tok=++speakTok;speakBtn=btn;if(btn){btn.textContent='■ 정지';btn.classList.add('playing')}
+  const done=()=>{if(tok===speakTok)resetSpeakBtn()};
+  const chunks=sentences(text);
+  if(useClaudeTTS()){
+    const v=(S.settings.voice||'claude:buttery').replace('claude:','')||'buttery';
+    CAP.tts.speak(chunks.map(c=>({text:c})),{voice:v,rate:Math.max(0.7,Math.min(1.5,S.settings.rate)),language:'en'})
+      .then(done).catch(e=>{if(tok!==speakTok)return;
+        if(e&&['not_granted','unavailable','upstream_error','no_gesture'].includes(e.code)){if(e.code==='not_granted')ttsOff=true;browserSpeak(chunks,done)}
+        else{if(e&&e.code==='rate_limited')toast('읽기 요청이 많습니다. 잠시 후 다시 눌러 주세요.');done()}});
+    return;
+  }
+  browserSpeak(chunks,done);
+}
+function browserSpeak(chunks,done){
+  if(!window.speechSynthesis){toast('이 화면에서는 읽어주기를 쓸 수 없습니다.');done();return}
+  const v=pickVoice();
+  chunks.forEach((c,k)=>{const u=new SpeechSynthesisUtterance(c);u.lang='en-US';if(v)u.voice=v;u.rate=S.settings.rate;if(k===chunks.length-1){u.onend=done;u.onerror=done}speechSynthesis.speak(u)});
+}
+
+/* ================= render & events ================= */
+function render(keep){
+  if(!PID){$('#app').innerHTML=(FB_ON&&!IN_CLAUDE)?viewAuth():viewProfiles();document.querySelector('nav').style.display='none';window.scrollTo(0,0);return}
+  document.querySelector('nav').style.display='';
+  stopRec();if(!keep)stopSpeak();const y=window.scrollY;
+  const v={today:viewToday,review:viewReview,growth:viewGrowth,notes:viewNotes}[tab]();
+  $('#app').innerHTML=v;if(autoGen!=null){const g=autoGen;autoGen=null;setTimeout(()=>genScripts(g,null),0)}$('#app').classList.toggle('paused-body',!!(D&&D.pausedAt&&tab==='today'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  if(tab==='notes'){loadCustom();fillVoices()}
+  window.scrollTo(0,keep?y:0);
+}
+function loadCustom(){const s=$('#cTopic');if(!s)return;const id=s.value;$('#cText').value=(S.custom[id]||[]).join('\n');$('#cInfo').textContent=`현재 ${(S.custom[id]||[]).length}개`}
+
+function gradeCard(id,g){
+  const c=S.cards.find(x=>x.id===id);if(!c)return;
+  const idx=INTERVALS.indexOf(c.interval);
+  if(g==='ok')c.interval=INTERVALS[Math.min(idx+1,INTERVALS.length-1)];
+  else if(g==='miss')c.interval=1;
+  c.due=addDays(todayStr(),c.interval);c.reps=(c.reps||0)+1;
+  if(D&&tab==='today'){D.review[g]++;D.review.ids.push(id);saveDraft()}
+  save();reveal=false;reviewIdx++;render(true);
+}
+
+function buildAnswers(){
+  if(!D.sel.length){D.sel=ladder(topicQs(topicById(D.topicId)));if(!D.sel.length)D.sel=ladder(topicQs(visibleTopics()[0]))}
+  const prev={};D.answers.forEach(x=>prev[x.q]=x);
+  D.answers=D.sel.map(q=>prev[q]||{q,a1:{text:'',secs:0},a2:{text:'',secs:0}});
+}
+function goPhase(n){
+  stopRec();n=Math.max(0,Math.min(4,n));
+  if(n>=2&&(D.phase<=1||!D.answers.length))buildAnswers();
+  D.phase=n;saveDraft();render();
+}
+function copyText(txt,msg){
+  const fb=()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(msg)}catch(_){toast('복사에 실패했습니다.')}ta.remove()};
+  navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>toast(msg)).catch(fb):fb();
+}
+function finish(){
+  stopRec();if(D.pausedAt){D.pausedMs=(D.pausedMs||0)+Date.now()-D.pausedAt;D.pausedAt=null}
+  D.answers.forEach(a=>{a.a1.text=a.a1.text.trim();a.a2.text=a.a2.text.trim()});
+  const metrics=computeMetrics(D);
+  let added=0;
+  D.blocked.forEach(b=>{if((b.en||'').trim()){S.cards.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),ko:b.ko,en:b.en.trim(),topic:D.topicId,created:D.date,interval:1,due:addDays(D.date,1),reps:0});added++}});
+  S.sessions.push({_id:newId(),createdAt:new Date().toISOString(),date:D.date,topicId:D.topicId,minutes:Math.max(1,Math.round(elapsedSec()/60)),
+    answers:D.answers,blocked:D.blocked,review:{ok:D.review.ok,fuzzy:D.review.fuzzy,miss:D.review.miss},self:D.self,metrics,cardsAdded:added});
+  save();D=null;saveDraft();releaseMic();justSaved=S.sessions.length-1;render();
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act],[data-tab]');if(!t)return;if(!PID&&!['pickProfile','authTab','doAuth','reload'].includes(t.dataset.act))return;
+  if(t.dataset.tab){tab=t.dataset.tab;justSaved=null;openIdx=null;reveal=false;stopSpeak();render();return}
+  const a=t.dataset.act;
+  if(a==='pickProfile'){$('#app').innerHTML='<div style="padding-top:20vh;text-align:center" class="mute">불러오는 중…</div>';loadProfile(t.dataset.id).then(()=>render());return}
+  if(a==='authTab'){authTab=t.dataset.t;render();return}
+  if(a==='doAuth'){doAuth();return}
+  if(a==='reload'){location.reload();return}
+  if(a==='switchProfile'){(D?ask(FB?'진행 중인 세션은 저장돼 있어 다시 로그인하면 이어집니다. 로그아웃할까요?':'진행 중인 세션은 저장된 상태 그대로 남고, 다음에 이 사용자로 들어오면 이어집니다. 사용자를 바꿀까요?'):Promise.resolve(true)).then(ok=>{if(ok)(FB?doLogout():switchProfile())});return}
+  if(a==='saveName'){S.settings.name=$('#nameText').value.trim();save();render(true);toast('이름을 저장했습니다.');return}
+  if(a==='saveBg'){S.settings.bg=$('#bgText').value.trim();save();toast('배경을 저장했습니다.');return}
+  if(a==='start'){D=newDraft();saveDraft();render();if(SR)ensureMic().then(ok=>{if(!ok)toast('마이크 권한을 받지 못했습니다. 녹음할 때 다시 요청하거나 키보드 받아쓰기를 쓰세요.')})}
+  else if(a==='next')goPhase(D.phase+1);
+  else if(a==='goPhase')goPhase(+t.dataset.i);
+  else if(a==='prev'){D.phase--;saveDraft();render()}
+  else if(a==='finish')finish();
+  else if(a==='closeResult'){justSaved=null;render()}
+  else if(a==='reveal'){reveal=true;render(true)}
+  else if(a==='grade')gradeCard(t.dataset.id,t.dataset.g);
+  else if(a==='topic'){D.topicId=t.dataset.id;D.sel=ladder(topicQs(topicById(D.topicId)));saveDraft();render(true)}
+  else if(a==='filter'){D.filter=t.dataset.k;saveDraft();render(true)}
+  else if(a==='shuffle4'){D.sel=topicQs(topicById(D.topicId)).slice().sort(()=>Math.random()-.5).slice(0,4);saveDraft();render(true)}
+  else if(a==='shuffle'){D.sel=ladder(topicQs(topicById(D.topicId)));saveDraft();render(true)}
+  else if(a==='shuffleOld'){const qs=topicQs(topicById(D.topicId)).slice().sort(()=>Math.random()-.5);D.sel=qs.slice(0,4);saveDraft();render()}
+  else if(a==='copyPrompt'){
+    const txt=`지금부터 영어 회화 연습을 하자. 아래 질문 목록에서 하나씩 무작위로 영어로 물어봐 줘. 내 대답이 끝나면 (1) 원어민이 실제로 쓰는 자연스러운 표현으로 고친 문장, (2) 내가 막히거나 어색했던 부분을 대신할 표현 2~3개를 알려주고, 다음 질문으로 넘어가 줘. 내 목표는 OPIc AL 수준의 자연스러운 스피킹이야.\n\n질문:\n${D.sel.map(q=>'- '+qText(q)).join('\n')}`;
+    copyText(txt,'프롬프트를 복사했습니다.')}
+  else if(a==='pause'){if(D.pausedAt){D.pausedMs=(D.pausedMs||0)+Date.now()-D.pausedAt;D.pausedAt=null;toast('다시 시작합니다.')}else{stopRec();D.pausedAt=Date.now();toast('일시정지했습니다.')}saveDraft();render(true)}
+  else if(a==='resetTime'){ask('학습 시간을 0:00으로 되돌립니다. 답변과 메모는 그대로 남습니다.').then(ok=>{if(!ok||!D)return;
+    stopRec();D.startedAt=Date.now();D.pausedMs=0;D.pausedAt=Date.now();saveDraft();render(true);toast('시간을 초기화했습니다. 계속하기를 누르면 0:00부터 시작합니다.')})}
+  else if(a==='restart'){ask('현재 세션의 답변·막힌 말 메모·선택한 질문이 모두 지워지고 1단계부터 새로 시작합니다. 이미 넘긴 복습 카드 결과는 유지됩니다.').then(ok=>{if(!ok||!D)return;
+    stopRec();const rv=D.review,pd=D.prevDone;D=newDraft();D.review=rv;D.prevDone=pd;saveDraft();render();toast('새 세션을 0:00부터 시작합니다.')})}
+  else if(a==='rec'&&D&&D.pausedAt){toast('일시정지 중입니다. 계속하기를 누르세요.')}
+  else if(a==='rec'){active&&active.key===t.dataset.key?stopRec():startRec(t.dataset.key)}
+  else if(a==='clear'){if(active&&active.key===t.dataset.key)stopRec();const o=getObj(t.dataset.key);o.text='';o.secs=0;saveDraft();render(true)}
+  else if(a==='addBlk'){const v=$('#blkIn').value.trim();if(!v)return;D.blocked.push({ko:v,en:''});saveDraft();render(true);setTimeout(()=>$('#blkIn')&&$('#blkIn').focus(),0)}
+  else if(a==='delBlk'){D.blocked.splice(+t.dataset.i,1);saveDraft();render(true)}
+  else if(a==='speak'){const m=S.sessions[+t.dataset.i].answers[+t.dataset.j].model;if(m)speak(m.text,t)}
+  else if(a==='genAll'){genScripts(+t.dataset.i,null)}
+  else if(a==='genOne'){genScripts(+t.dataset.i,+t.dataset.j)}
+  else if(a==='copyModel'){copyText(batchPrompt(S.sessions[+t.dataset.i]),'스크립트 요청 프롬프트를 복사했습니다. Claude나 ChatGPT에 붙여넣으세요.')}
+  else if(a==='pasteModel'){const n=parsePasted(+t.dataset.i,$('#pasteModel').value);toast(n?`스크립트 ${n}개를 저장했습니다.`:'형식을 찾지 못했습니다. "### Q1" 형식인지 확인하세요.');if(n)render(true)}
+  else if(a==='phrasesToCards'){const s0=S.sessions[+t.dataset.i],an=s0.answers[+t.dataset.j];if(an.model.carded)return;
+    an.model.phrases.forEach(ph=>S.cards.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),ko:ph.ko||qText(an.q),en:ph.en,topic:s0.topicId,created:todayStr(),interval:1,due:addDays(todayStr(),1),reps:0}));
+    an.model.carded=true;save();render(true);toast('핵심 표현 3개를 내일 복습에 추가했습니다.')}
+  else if(a==='saveKey'){setKey($('#apiKey').value.trim());S.settings.model=$('#modelName').value.trim()||'claude-sonnet-5';save();toast('저장했습니다.')}
+  else if(a==='delKey'){setKey('');$('#apiKey').value='';toast('API 키를 삭제했습니다.')}
+  else if(a==='testVoice'){speak('Hi, I\'m a geotechnical engineer, and my research focuses on monitoring retaining walls.',t)}
+  else if(a==='openSession'){openIdx=+t.dataset.i;render()}
+  else if(a==='saveCustom'){const id=$('#cTopic').value;S.custom[id]=$('#cText').value.split('\n').map(s=>s.replace(/^[-•\d.\s]+/,'').trim()).filter(Boolean);save();loadCustom();toast('질문을 저장했습니다.')}
+  else if(a==='delCard'){S.cards=S.cards.filter(c=>c.id!==t.dataset.id);save();$('#cardList').innerHTML=cardList($('#cardSearch')?.value||'')}
+  else if(a==='export'){const fname=`speaking-${PID}-${todayStr()}.json`,data=JSON.stringify(Object.assign({},S,{apiKey:undefined}),null,1);
+    if(CAP.downloads){CAP.downloads.save({filename:fname,data}).then(()=>toast('백업 파일을 저장했습니다.')).catch(e=>{if(e&&e.code!=='declined')toast('내려받기에 실패했습니다.')});return}
+    const b=new Blob([data],{type:'application/json'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download=`speaking-${PID}-${todayStr()}.json`;l.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+  else if(a==='import')$('#importFile').click();
+  else if(a==='reset'){ask(`${profileName()}의 모든 세션, 표현 카드, 내 질문이 삭제됩니다. 계속할까요?`).then(ok=>{if(!ok)return;S={sessions:[],cards:[],custom:{},settings:S.settings};D=null;save();saveDraft();render()})}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.act==='sel'){const q=t.dataset.q;D.sel=t.checked?[...D.sel,q]:D.sel.filter(x=>x!==q);saveDraft();render(true)}
+  else if(t.dataset.act==='prevq'){const i=+t.dataset.i;D.prevDone=t.checked?[...D.prevDone,i]:D.prevDone.filter(x=>x!==i);saveDraft()}
+  else if(t.dataset.act==='setLen'){S.settings.len=t.value;save();render(true)}
+  else if(t.dataset.act==='faculty'){S.settings.faculty=t.checked;save()}
+  else if(t.id==='voiceSel'){S.settings.voice=t.value;ttsOff=false;save()}
+  else if(t.id==='cTopic')loadCustom();
+  else if(t.id==='importFile'&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.sessions))throw 0;S={sessions:d.sessions,cards:d.cards||[],custom:d.custom||{},settings:Object.assign({},S.settings,d.settings||{})};S.sessions.forEach(x=>{if(!x._id)x._id=newId()});save();toast(`세션 ${S.sessions.length}개를 불러왔습니다.`);render()}catch(_){toast('백업 파일 형식이 아닙니다.')}};r.readAsText(t.files[0]);t.value=''}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.tagName==='TEXTAREA'&&t.dataset.key){getObj(t.dataset.key).text=t.value;refreshMeta(t.dataset.key);saveDraft()}
+  else if(t.dataset.act==='blkEn'){D.blocked[+t.dataset.i].en=t.value;saveDraft()}
+  else if(t.dataset.act==='self'){D.self[t.dataset.k]=+t.value;$(t.dataset.k==='natural'?'#vn':'#vc').textContent=t.value;
+    const m=computeMetrics(D);$('#preScore').textContent=m.score;$('#preBars').innerHTML=barsHTML(m);saveDraft()}
+  else if(t.dataset.act==='setRate'){S.settings.rate=+t.value;$('#rateV').textContent=t.value+'x';save()}
+  else if(t.id==='cardSearch')$('#cardList').innerHTML=cardList(t.value);
+});
+document.addEventListener('keydown',e=>{if(!PID&&e.key==='Enter'&&e.target.closest&&e.target.closest('.fl')){e.preventDefault();doAuth();return}if(e.target.id==='blkIn'&&e.key==='Enter'){e.preventDefault();document.querySelector('[data-act="addBlk"]').click()}});
+setInterval(()=>{const c=$('#clock');if(c&&D&&PID){const s=elapsedSec();c.textContent=`${fmt(s)} / 60:00`;c.style.color=s>3600?'var(--alert)':''}},1000);
+
+migrateLegacy();
+let autoPaused=false;
+window.addEventListener('pagehide',()=>{if(PID)flush()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&PID)flush();if(!PID||!D)return;
+  if(document.hidden&&!D.pausedAt){stopRec();D.pausedAt=Date.now();autoPaused=true;saveDraft()}
+  else if(!document.hidden&&autoPaused){autoPaused=false;if(tab==='today'){render(true);toast('다른 창으로 이동해 자동 일시정지됐습니다. 계속하기를 누르세요.')}}});
+render();
+initCaps().then(loadStats).catch(()=>{}).then(()=>{BOOTED=true;render()});
+</script>
+</body>
+</html>
